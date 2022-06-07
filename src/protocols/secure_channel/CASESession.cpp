@@ -144,28 +144,70 @@ void CASESession::Clear()
     mState = State::kInitialized;
     Crypto::ClearSecretData(mIPK);
 
+    mFabricChangeListener.StopListeningForFabricChange();
+
     mLocalNodeId = kUndefinedNodeId;
     mPeerNodeId  = kUndefinedNodeId;
     mFabricInfo  = nullptr;
 }
 
+void CASESession::InvalidateIfPendingEstablishment()
+{
+    ChipLogDetail(SecureChannel, "!!!!!!!!!!!!!!!TMsg were are in here!!!!!!!!!");
+    // TODO maybe we could add PairingSession::IsPairing(), which would see if we can access
+    // secureSession = mSecureSessionHolder->AsSecureSession() and if so we, return
+    // secureSession->IsPairing().
+    switch (mState)
+    {
+    case State::kInitialized:
+        // TODO double check that for kInitialized that we don't want to also tear things
+        // down. There might be some corner cases that I still need to look into a little
+        // closer.
+        FALLTHROUGH;
+    case State::kFinished:
+        FALLTHROUGH;
+    case State::kFinishedViaResume:
+        // For the cases listed above there is no pending session establishment.
+        return;
+    default:
+        // It is highly unlikely that any new states that do not need any cleanup to CASESession,
+        // so for all other states we will peform invalidation of pending session establishment.
+        break;
+    }
+    // TODO #1 Is there anything else we need to do here. This delegate technically
+    // calls Clear() for us, but I don't think that is guaranteed, just how it
+    // is implemented today.
+    // TODO #2 double check if there is maybe a more suitable CHIP_ERROR, some other options are
+    // CHIP_ERROR_CERT_EXPIRED, CHIP_ERROR_TRANSACTION_CANCELED, or CHIP_ERROR_CANCELLED
+    mDelegate->OnSessionEstablishmentError(CHIP_ERROR_INCORRECT_STATE);
+}
+
 CHIP_ERROR CASESession::Init(SessionManager & sessionManager, SessionEstablishmentDelegate * delegate)
 {
+    CHIP_ERROR err = CHIP_NO_ERROR;
     VerifyOrReturnError(delegate != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(mGroupDataProvider != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
 
     Clear();
 
+    // No need to run SuccessOrExit as 
     ReturnErrorOnFailure(mCommissioningHash.Begin());
 
+    SuccessOrExit(err = mFabricChangeListener.ListenForFabricChange(&sessionManager));
+
     mDelegate = delegate;
-    ReturnErrorOnFailure(AllocateSecureSession(sessionManager));
+    SuccessOrExit(err = AllocateSecureSession(sessionManager));
 
     mValidContext.Reset();
     mValidContext.mRequiredKeyUsages.Set(KeyUsageFlags::kDigitalSignature);
     mValidContext.mRequiredKeyPurposes.Set(KeyPurposeFlags::kServerAuth);
 
-    return CHIP_NO_ERROR;
+exit:
+    if (err != CHIP_NO_ERROR)
+    {
+        Clear();
+    }
+    return err;
 }
 
 CHIP_ERROR

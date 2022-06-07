@@ -670,6 +670,16 @@ CHIP_ERROR FabricTable::AddNewFabric(FabricInfo & newFabric, FabricIndex * outpu
     return AddNewFabricInner(newFabric, outputIndex);
 }
 
+void FabricTable::FabricChangeNotification(FabricIndex fabricIndex)
+{
+    FabricTable::Delegate * delegate = mDelegateListRoot;
+    while (delegate)
+    {
+        delegate->OnFabricInfoChange(*this, fabricIndex);
+        delegate = delegate->next;
+    }
+}
+
 CHIP_ERROR FabricTable::AddNewFabricInner(FabricInfo & newFabric, FabricIndex * outputIndex)
 {
     if (!mNextAvailableFabricIndex.HasValue())

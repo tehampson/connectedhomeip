@@ -164,7 +164,43 @@ public:
      **/
     void Clear();
 
+    void InvalidateIfPendingEstablishment();
+
 private:
+    class CASESessionFabricChangeListener final : public SessionManager::FabricTableChangeListener
+    {
+    public:
+        CASESessionFabricChangeListener(CASESession * caseSession)
+        :  mCASESession(caseSession) {}
+        // TODO create destructor
+
+        CHIP_ERROR ListenForFabricChange(SessionManager * sessionManager) {
+            if (mSessionManager != nullptr)
+            {
+                StopListeningForFabricChange();
+            }
+
+            ReturnErrorOnFailure(sessionManager->AddFabricTableChangeListener(this));
+            mSessionManager = sessionManager;
+            return CHIP_NO_ERROR;
+        }
+
+        void StopListeningForFabricChange() {
+            if (mSessionManager != nullptr)
+            {
+                mSessionManager->RemoveFabricTableChangeListener(this);
+                mSessionManager = nullptr;
+            }
+        }
+
+        void FabricTableHasChanged(FabricIndex fabricIndex) override {
+            mCASESession->InvalidateIfPendingEstablishment();
+        }
+    private:
+        SessionManager * mSessionManager = nullptr;
+        CASESession * mCASESession;
+    };
+
     enum class State : uint8_t
     {
         kInitialized       = 0,
@@ -252,6 +288,7 @@ private:
     // Sigma1 initiator random, maintained to be reused post-Sigma1, such as when generating Sigma2 S2RK key
     uint8_t mInitiatorRandom[kSigmaParamRandomNumberSize];
 
+    CASESessionFabricChangeListener mFabricChangeListener = CASESessionFabricChangeListener(this);
     State mState;
 };
 

@@ -428,6 +428,9 @@ class OpCredsFabricTableDelegate : public chip::FabricTable::Delegate
                         ChipLogValueX64(fabric->GetNodeId()), fabric->GetVendorId());
         fabricListChanged();
     }
+
+    // Intentionally left blank
+    void OnFabricInfoChange(chip::FabricTable & fabricTable, chip::FabricIndex fabricIndex) override {}
 };
 
 OpCredsFabricTableDelegate gFabricDelegate;
@@ -823,6 +826,10 @@ bool emberAfOperationalCredentialsClusterUpdateNOCCallback(app::CommandHandler *
     // Flag on the fail-safe context that the UpdateNOC command was invoked.
     err = failSafeContext.SetUpdateNocCommandInvoked();
     VerifyOrExit(err == CHIP_NO_ERROR, nocResponse = ConvertToNOCResponseStatus(err));
+
+    // TODO calling FabricChangeNotification seems a little out of place, would it be better to have this called
+    // maybe in SetNOCCert(), or maybe somewhere else.
+    Server::GetInstance().GetFabricTable().FabricChangeNotification(fabric->GetFabricIndex());
 
     // We might have a new operational identity, so we should start advertising
     // it right away.  Also, we need to withdraw our old operational identity.

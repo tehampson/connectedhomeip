@@ -352,6 +352,12 @@ public:
          **/
         virtual void OnFabricPersistedToStorage(FabricTable & fabricTable, FabricIndex fabricIndex) = 0;
 
+        /**
+         * Gets called when a fabric in Fabric Table is updated but not yet added to persistent to storage,
+         * such as on FabricTable::FabricUpdated().
+         **/
+        virtual void OnFabricInfoChange(FabricTable & fabricTable, FabricIndex fabricIndex) = 0;
+
         // Intrusive list pointer for FabricTable to manage the entries.
         Delegate * next = nullptr;
     };
@@ -378,6 +384,11 @@ public:
      * The fabric information will also be persisted to storage.
      */
     CHIP_ERROR AddNewFabric(FabricInfo & fabric, FabricIndex * assignedIndex);
+
+    /**
+     * Send notification that fabricIndex was updated to all FabricTable Delegates.
+     */
+    void FabricChangeNotification(FabricIndex fabricIndex);
 
     // This is same as AddNewFabric, but skip duplicate fabric check, because we have multiple nodes belongs to the same fabric in
     // test-cases

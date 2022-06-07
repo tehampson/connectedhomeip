@@ -201,6 +201,8 @@ public:
      */
     void FabricRemoved(FabricIndex fabricIndex);
 
+    void FabricUpdated(FabricIndex fabricIndex);
+
     TransportMgrBase * GetTransportManager() const { return mTransportMgr; }
 
     /**
@@ -238,6 +240,18 @@ public:
     using SessionHandleCallback = bool (*)(void * context, SessionHandle & sessionHandle);
     CHIP_ERROR ForEachSessionHandle(void * context, SessionHandleCallback callback);
 
+    class DLL_EXPORT FabricTableChangeListener
+    {
+    public:
+        FabricTableChangeListener() {}
+        virtual ~FabricTableChangeListener() {}
+        virtual void FabricTableHasChanged(FabricIndex fabricIndex) = 0;
+        FabricTableChangeListener * next = nullptr;
+    };
+
+    CHIP_ERROR AddFabricTableChangeListener(FabricTableChangeListener * listener);
+    void RemoveFabricTableChangeListener(FabricTableChangeListener * listener);
+
 private:
     /**
      *    The State of a secure transport object.
@@ -267,6 +281,12 @@ private:
     Transport::MessageCounterManagerInterface * mMessageCounterManager = nullptr;
 
     GlobalUnencryptedMessageCounter mGlobalUnencryptedMessageCounter;
+
+    // FabricTable::Delegate link to first node, since FabricTable::Delegate is a form
+    // of intrusive linked-list item.
+    FabricTableChangeListener * mListenerListRoot = nullptr;
+
+    void FabricChangedNotifyListener(FabricIndex fabricIndex);
 
     void SecureUnicastMessageDispatch(const PacketHeader & packetHeader, const Transport::PeerAddress & peerAddress,
                                       System::PacketBufferHandle && msg);

@@ -368,6 +368,13 @@ private:
             (void) fabricIndex;
         }
 
+        void OnFabricInfoChange(chip::FabricTable & fabricTable, chip::FabricIndex fabricIndex) override
+        {
+            (void) fabricTable;
+            auto & sessionManager = mServer->GetSecureSessionManager();
+            sessionManager.FabricRemoved(fabricIndex);
+        }
+
     private:
         Server * mServer = nullptr;
     };

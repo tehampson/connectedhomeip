@@ -198,6 +198,12 @@ public:
             (void) fabricIndex;
         }
 
+        void OnFabricInfoChange(FabricTable & fabricTable, FabricIndex fabricIndex) override
+        {
+            (void) fabricTable;
+            (void) fabricIndex;
+        }
+
     private:
         SessionManager * mSessionManager                    = nullptr;
         Credentials::GroupDataProvider * mGroupDataProvider = nullptr;

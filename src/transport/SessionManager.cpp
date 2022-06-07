@@ -72,6 +72,7 @@ uint32_t EncryptedPacketBufferHandle::GetMessageCounter() const
 
 SessionManager::SessionManager() : mState(State::kNotReady) {}
 
+// TODO we need to clear all listener in mListenerListRoot.
 SessionManager::~SessionManager() {}
 
 CHIP_ERROR SessionManager::Init(System::Layer * systemLayer, TransportMgrBase * transportMgr,
@@ -119,6 +120,26 @@ void SessionManager::Shutdown()
 void SessionManager::FabricRemoved(FabricIndex fabricIndex)
 {
     mGroupPeerMsgCounter.FabricRemoved(fabricIndex);
+    FabricChangedNotifyListener(fabricIndex);
+}
+
+void SessionManager::FabricUpdated(FabricIndex fabricIndex)
+{
+    FabricChangedNotifyListener(fabricIndex);
+}
+
+void SessionManager::FabricChangedNotifyListener(FabricIndex fabricIndex)
+{
+    ChipLogDetail(Inet, "!!!!!!!!!!!!!!!TMsg were are in here!!!!!!!!!");
+    FabricTableChangeListener * listener = mListenerListRoot;
+    while (listener)
+    {
+        // It is possible that listener will remove itself from the list in FabricTableHasChanged,
+        // so we grab the next listener in the list now.
+        FabricTableChangeListener * nextListener = listener->next;
+        listener->FabricTableHasChanged(fabricIndex);
+        listener = nextListener;
+    }
 }
 
 CHIP_ERROR SessionManager::PrepareMessage(const SessionHandle & sessionHandle, PayloadHeader & payloadHeader,
@@ -752,6 +773,52 @@ Optional<SessionHandle> SessionManager::FindSecureSessionForNode(ScopedNodeId pe
         return Loop::Continue;
     });
     return CHIP_NO_ERROR;
+}
+
+CHIP_ERROR SessionManager::AddFabricTableChangeListener(FabricTableChangeListener * listener)
+{
+    VerifyOrReturnError(listener != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
+    for (FabricTableChangeListener * iter = mListenerListRoot; iter != nullptr; iter = iter->next)
+    {
+        if (iter == listener)
+        {
+            return CHIP_NO_ERROR;
+        }
+    }
+    listener->next    = mListenerListRoot;
+    mListenerListRoot = listener;
+    return CHIP_NO_ERROR;
+}
+
+void SessionManager::RemoveFabricTableChangeListener(FabricTableChangeListener * listenerToRemove)
+{
+    VerifyOrReturn(listenerToRemove != nullptr);
+
+    if (listenerToRemove == mListenerListRoot)
+    {
+        // Removing head of the list, keep link to next, may
+        // be nullptr.
+        mListenerListRoot = mListenerListRoot->next;
+    }
+    else
+    {
+        // Removing some other item: check if next, and
+        // remove the link, keeping its neighbour.
+        FabricTableChangeListener * currentNode = mListenerListRoot;
+
+        while (currentNode)
+        {
+            if (currentNode->next == listenerToRemove)
+            {
+                FabricTableChangeListener * temp = listenerToRemove->next;
+                currentNode->next            = temp;
+                listenerToRemove->next       = nullptr;
+                return;
+            }
+
+            currentNode = currentNode->next;
+        }
+    }
 }
 
 } // namespace chip
