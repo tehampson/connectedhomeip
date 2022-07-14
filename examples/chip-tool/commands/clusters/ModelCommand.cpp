@@ -46,12 +46,13 @@ CHIP_ERROR ModelCommand::RunCommand()
                                                     &mOnDeviceConnectionFailureCallback);
 }
 
-void ModelCommand::OnDeviceConnectedFn(void * context, chip::OperationalDeviceProxy * device)
+void ModelCommand::OnDeviceConnectedFn(void * context, chip::FoobarDeviceProxy device)
 {
     ModelCommand * command = reinterpret_cast<ModelCommand *>(context);
     VerifyOrReturn(command != nullptr, ChipLogError(chipTool, "OnDeviceConnectedFn: context is null"));
 
-    CHIP_ERROR err = command->SendCommand(device, command->mEndPointId);
+    // TODO TMsg I have no clue where this one goes to. Not sure if FoobarDeviceProxy being on the stack is ok.
+    CHIP_ERROR err = command->SendCommand(&device, command->mEndPointId);
     VerifyOrReturn(CHIP_NO_ERROR == err, command->SetCommandExitStatus(err));
 }
 

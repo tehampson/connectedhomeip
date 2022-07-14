@@ -608,16 +608,21 @@ const char * pychip_Stack_StatusReportToString(uint32_t profileId, uint16_t stat
 }
 
 namespace {
+
+FoobarDeviceProxy foobar;
+
 struct GetDeviceCallbacks
 {
     GetDeviceCallbacks(DeviceAvailableFunc callback) :
         mOnSuccess(OnDeviceConnectedFn, this), mOnFailure(OnConnectionFailureFn, this), mCallback(callback)
     {}
 
-    static void OnDeviceConnectedFn(void * context, OperationalDeviceProxy * device)
+    static void OnDeviceConnectedFn(void * context, FoobarDeviceProxy device)
     {
         auto * self = static_cast<GetDeviceCallbacks *>(context);
-        self->mCallback(device, CHIP_NO_ERROR.AsInteger());
+        foobar = device;
+        // TODO TMsg: this is a hack, this makes it so that we cannot perform parallel task.
+        self->mCallback(&foobar, CHIP_NO_ERROR.AsInteger());
         delete self;
     }
 

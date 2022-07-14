@@ -270,6 +270,7 @@ void OperationalDeviceProxy::DequeueConnectionCallbacks(CHIP_ERROR error)
         }
     }
 
+    FoobarDeviceProxy foobar = FoobarDeviceProxy(mPeerId, GetExchangeManager(), mSecureSession);
     while (successReady.mNext != &successReady)
     {
         Callback::Callback<OnDeviceConnected> * cb = Callback::Callback<OnDeviceConnected>::FromCancelable(successReady.mNext);
@@ -277,7 +278,7 @@ void OperationalDeviceProxy::DequeueConnectionCallbacks(CHIP_ERROR error)
         cb->Cancel();
         if (error == CHIP_NO_ERROR)
         {
-            cb->mCall(cb->mContext, this);
+            cb->mCall(cb->mContext, foobar);
         }
     }
 }

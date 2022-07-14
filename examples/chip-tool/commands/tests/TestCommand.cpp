@@ -48,7 +48,7 @@ CHIP_ERROR TestCommand::WaitForCommissionee(const char * identity,
                                                         &mOnDeviceConnectionFailureCallback);
 }
 
-void TestCommand::OnDeviceConnectedFn(void * context, chip::OperationalDeviceProxy * device)
+void TestCommand::OnDeviceConnectedFn(void * context, chip::FoobarDeviceProxy device)
 {
     ChipLogProgress(chipTool, " **** Test Setup: Device Connected\n");
     auto * command = static_cast<TestCommand *>(context);

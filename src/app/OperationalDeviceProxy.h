@@ -72,7 +72,29 @@ struct DeviceProxyInitParams
 
 class OperationalDeviceProxy;
 
-typedef void (*OnDeviceConnected)(void * context, OperationalDeviceProxy * device);
+class FoobarDeviceProxy : public DeviceProxy {
+public:
+    FoobarDeviceProxy(const PeerId & peerId, Messaging::ExchangeManager * exchangeMgr, SessionHolder sessionHolder) :
+        mPeerId(peerId),
+        mExchangeMgr(exchangeMgr),
+        mSecureSession(sessionHolder) {}
+    FoobarDeviceProxy() {}
+    void ShutdownSubscriptions() override { VerifyOrDie(false); }  // Currently not implemented.
+    void Disconnect() override { mSecureSession.Release(); }
+    Messaging::ExchangeManager * GetExchangeManager() const override { return mExchangeMgr; }
+    chip::Optional<SessionHandle> GetSecureSession() const override { return mSecureSession.Get(); }
+    NodeId GetDeviceId() const override { return mPeerId.GetNodeId(); }
+    PeerId GetPeerId() const { return mPeerId; }
+
+private:
+    bool IsSecureConnected() const override { return static_cast<bool>(mSecureSession); }
+
+    PeerId mPeerId;
+    Messaging::ExchangeManager * mExchangeMgr = nullptr;
+    SessionHolder mSecureSession;
+};
+
+typedef void (*OnDeviceConnected)(void * context, FoobarDeviceProxy device);
 typedef void (*OnDeviceConnectionFailure)(void * context, PeerId peerId, CHIP_ERROR error);
 
 /**

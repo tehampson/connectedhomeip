@@ -431,16 +431,15 @@ CHIP_ERROR DefaultOTARequestor::GetUpdateStateAttribute(EndpointId endpointId, O
 }
 
 // Called whenever FindOrEstablishSession is successful
-void DefaultOTARequestor::OnConnected(void * context, OperationalDeviceProxy * deviceProxy)
+void DefaultOTARequestor::OnConnected(void * context, FoobarDeviceProxy deviceProxy)
 {
     DefaultOTARequestor * requestorCore = static_cast<DefaultOTARequestor *>(context);
     VerifyOrDie(requestorCore != nullptr);
-    VerifyOrDie(deviceProxy != nullptr);
 
     switch (requestorCore->mOnConnectedAction)
     {
     case kQueryImage: {
-        CHIP_ERROR err = requestorCore->SendQueryImageRequest(*deviceProxy);
+        CHIP_ERROR err = requestorCore->SendQueryImageRequest(deviceProxy);
 
         if (err != CHIP_NO_ERROR)
         {
@@ -451,7 +450,7 @@ void DefaultOTARequestor::OnConnected(void * context, OperationalDeviceProxy * d
         break;
     }
     case kDownload: {
-        CHIP_ERROR err = requestorCore->StartDownload(*deviceProxy);
+        CHIP_ERROR err = requestorCore->StartDownload(deviceProxy);
 
         if (err != CHIP_NO_ERROR)
         {
@@ -462,7 +461,7 @@ void DefaultOTARequestor::OnConnected(void * context, OperationalDeviceProxy * d
         break;
     }
     case kApplyUpdate: {
-        CHIP_ERROR err = requestorCore->SendApplyUpdateRequest(*deviceProxy);
+        CHIP_ERROR err = requestorCore->SendApplyUpdateRequest(deviceProxy);
 
         if (err != CHIP_NO_ERROR)
         {
@@ -473,7 +472,7 @@ void DefaultOTARequestor::OnConnected(void * context, OperationalDeviceProxy * d
         break;
     }
     case kNotifyUpdateApplied: {
-        CHIP_ERROR err = requestorCore->SendNotifyUpdateAppliedRequest(*deviceProxy);
+        CHIP_ERROR err = requestorCore->SendNotifyUpdateAppliedRequest(deviceProxy);
 
         if (err != CHIP_NO_ERROR)
         {
@@ -739,7 +738,7 @@ CHIP_ERROR DefaultOTARequestor::GenerateUpdateToken()
     return CHIP_NO_ERROR;
 }
 
-CHIP_ERROR DefaultOTARequestor::SendQueryImageRequest(OperationalDeviceProxy & deviceProxy)
+CHIP_ERROR DefaultOTARequestor::SendQueryImageRequest(FoobarDeviceProxy & deviceProxy)
 {
     VerifyOrReturnError(mProviderLocation.HasValue(), CHIP_ERROR_INCORRECT_STATE);
 
@@ -807,7 +806,7 @@ CHIP_ERROR DefaultOTARequestor::ExtractUpdateDescription(const QueryImageRespons
     return CHIP_NO_ERROR;
 }
 
-CHIP_ERROR DefaultOTARequestor::StartDownload(OperationalDeviceProxy & deviceProxy)
+CHIP_ERROR DefaultOTARequestor::StartDownload(FoobarDeviceProxy & deviceProxy)
 {
     VerifyOrReturnError(mBdxDownloader != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
@@ -846,7 +845,7 @@ CHIP_ERROR DefaultOTARequestor::StartDownload(OperationalDeviceProxy & devicePro
     return err;
 }
 
-CHIP_ERROR DefaultOTARequestor::SendApplyUpdateRequest(OperationalDeviceProxy & deviceProxy)
+CHIP_ERROR DefaultOTARequestor::SendApplyUpdateRequest(FoobarDeviceProxy & deviceProxy)
 {
     VerifyOrReturnError(mProviderLocation.HasValue(), CHIP_ERROR_INCORRECT_STATE);
     ReturnErrorOnFailure(GenerateUpdateToken());
@@ -861,7 +860,7 @@ CHIP_ERROR DefaultOTARequestor::SendApplyUpdateRequest(OperationalDeviceProxy & 
     return cluster.InvokeCommand(args, this, OnApplyUpdateResponse, OnApplyUpdateFailure);
 }
 
-CHIP_ERROR DefaultOTARequestor::SendNotifyUpdateAppliedRequest(OperationalDeviceProxy & deviceProxy)
+CHIP_ERROR DefaultOTARequestor::SendNotifyUpdateAppliedRequest(FoobarDeviceProxy & deviceProxy)
 {
     VerifyOrReturnError(mProviderLocation.HasValue(), CHIP_ERROR_INCORRECT_STATE);
     ReturnErrorOnFailure(GenerateUpdateToken());

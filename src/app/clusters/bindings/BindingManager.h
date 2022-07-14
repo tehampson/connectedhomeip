@@ -38,7 +38,7 @@ namespace chip {
  * E.g. The application will send on/off commands to peer for the OnOff cluster.
  *
  */
-using BoundDeviceChangedHandler = void (*)(const EmberBindingTableEntry & binding, DeviceProxy * peer_device, void * context);
+using BoundDeviceChangedHandler = void (*)(const EmberBindingTableEntry & binding, FoobarDeviceProxy * peer_device, void * context);
 
 /**
  * Application callback function when a context used in NotifyBoundClusterChanged will not be needed and should be
@@ -123,8 +123,8 @@ public:
 private:
     static BindingManager sBindingManager;
 
-    static void HandleDeviceConnected(void * context, OperationalDeviceProxy * device);
-    void HandleDeviceConnected(OperationalDeviceProxy * device);
+    static void HandleDeviceConnected(void * context, FoobarDeviceProxy device);
+    void HandleDeviceConnected(FoobarDeviceProxy & device);
 
     static void HandleDeviceConnectionFailure(void * context, PeerId peerId, CHIP_ERROR error);
     void HandleDeviceConnectionFailure(PeerId peerId, CHIP_ERROR error);

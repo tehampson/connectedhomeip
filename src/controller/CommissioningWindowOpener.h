@@ -120,13 +120,13 @@ private:
         kOpenCommissioningWindow,
     };
 
-    CHIP_ERROR OpenCommissioningWindowInternal(OperationalDeviceProxy * device);
+    CHIP_ERROR OpenCommissioningWindowInternal(const FoobarDeviceProxy & device);
     static void OnPIDReadResponse(void * context, uint16_t value);
     static void OnVIDReadResponse(void * context, VendorId value);
     static void OnVIDPIDReadFailureResponse(void * context, CHIP_ERROR error);
     static void OnOpenCommissioningWindowSuccess(void * context, const app::DataModel::NullObjectType &);
     static void OnOpenCommissioningWindowFailure(void * context, CHIP_ERROR error);
-    static void OnDeviceConnectedCallback(void * context, OperationalDeviceProxy * device);
+    static void OnDeviceConnectedCallback(void * context, FoobarDeviceProxy device);
     static void OnDeviceConnectionFailureCallback(void * context, PeerId peerId, CHIP_ERROR error);
 
     DeviceController * const mController = nullptr;

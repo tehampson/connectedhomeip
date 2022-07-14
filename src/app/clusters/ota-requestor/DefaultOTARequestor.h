@@ -223,7 +223,7 @@ private:
     /**
      * Send QueryImage request using values matching Basic cluster
      */
-    CHIP_ERROR SendQueryImageRequest(OperationalDeviceProxy & deviceProxy);
+    CHIP_ERROR SendQueryImageRequest(FoobarDeviceProxy & deviceProxy);
 
     /**
      * Validate and extract mandatory information from QueryImageResponse
@@ -254,17 +254,17 @@ private:
     /**
      * Start download of the software image returned in QueryImageResponse
      */
-    CHIP_ERROR StartDownload(OperationalDeviceProxy & deviceProxy);
+    CHIP_ERROR StartDownload(FoobarDeviceProxy & deviceProxy);
 
     /**
      * Send ApplyUpdate request using values obtained from QueryImageResponse
      */
-    CHIP_ERROR SendApplyUpdateRequest(OperationalDeviceProxy & deviceProxy);
+    CHIP_ERROR SendApplyUpdateRequest(FoobarDeviceProxy & deviceProxy);
 
     /**
      * Send NotifyUpdateApplied request
      */
-    CHIP_ERROR SendNotifyUpdateAppliedRequest(OperationalDeviceProxy & deviceProxy);
+    CHIP_ERROR SendNotifyUpdateAppliedRequest(FoobarDeviceProxy & deviceProxy);
 
     /**
      * Store current update information to KVS
@@ -279,7 +279,7 @@ private:
     /**
      * Session connection callbacks
      */
-    static void OnConnected(void * context, OperationalDeviceProxy * deviceProxy);
+    static void OnConnected(void * context, FoobarDeviceProxy deviceProxy);
     static void OnConnectionFailure(void * context, PeerId peerId, CHIP_ERROR error);
     Callback::Callback<OnDeviceConnected> mOnConnectedCallback;
     Callback::Callback<OnDeviceConnectionFailure> mOnConnectionFailureCallback;

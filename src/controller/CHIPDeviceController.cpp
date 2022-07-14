@@ -1588,7 +1588,9 @@ void DeviceCommissioner::CommissioningStageComplete(CHIP_ERROR err, Commissionin
     }
 }
 
-void DeviceCommissioner::OnDeviceConnectedFn(void * context, OperationalDeviceProxy * device)
+FoobarDeviceProxy foobar;
+
+void DeviceCommissioner::OnDeviceConnectedFn(void * context, FoobarDeviceProxy device)
 {
     // CASE session established.
     DeviceCommissioner * commissioner = static_cast<DeviceCommissioner *>(context);
@@ -1602,7 +1604,7 @@ void DeviceCommissioner::OnDeviceConnectedFn(void * context, OperationalDevicePr
     }
 
     if (commissioner->mDeviceBeingCommissioned == nullptr ||
-        commissioner->mDeviceBeingCommissioned->GetDeviceId() != device->GetDeviceId())
+        commissioner->mDeviceBeingCommissioned->GetDeviceId() != device.GetDeviceId())
     {
         // Not the device we are trying to commission.
         return;
@@ -1610,8 +1612,9 @@ void DeviceCommissioner::OnDeviceConnectedFn(void * context, OperationalDevicePr
 
     if (commissioner->mCommissioningDelegate != nullptr)
     {
+        foobar = device;
         CommissioningDelegate::CommissioningReport report;
-        report.Set<OperationalNodeFoundData>(OperationalNodeFoundData(device));
+        report.Set<OperationalNodeFoundData>(OperationalNodeFoundData(&foobar));
         commissioner->CommissioningStageComplete(CHIP_NO_ERROR, report);
     }
 }
