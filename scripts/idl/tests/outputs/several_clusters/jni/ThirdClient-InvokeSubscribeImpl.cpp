@@ -28,8 +28,12 @@ JNI_METHOD(jlong, ThirdCluster, initWithDevice)(JNIEnv * env, jobject self, jlon
 {
     chip::DeviceLayer::StackLock lock;
     DeviceProxy * device = reinterpret_cast<DeviceProxy *>(devicePtr);
-    ThirdCluster * cppCluster = new ThirdCluster(*device->GetExchangeManager(), device->GetSecureSession().Value(), endpointId);
-    return reinterpret_cast<jlong>(cppCluster);
+    if (device->GetSecureSession().HasValue())
+    {
+        ThirdCluster * cppCluster = new ThirdCluster(*device->GetExchangeManager(), device->GetSecureSession().Value(), endpointId);
+        return reinterpret_cast<jlong>(cppCluster);
+    }
+    return reinterpret_cast<jlong>(nullptr);
 }
 
 JNI_METHOD(void, ThirdCluster, subscribeSomeEnumAttribute)(JNIEnv * env, jobject self, jlong clusterPtr, jobject callback, jint minInterval, jint maxInterval)

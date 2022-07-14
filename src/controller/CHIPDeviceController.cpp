@@ -43,7 +43,7 @@
 #include <app/server/Dnssd.h>
 
 #include <app/InteractionModelEngine.h>
-#include <app/OperationalDeviceProxy.h>
+#include <app/OperationalSessionSetup.h>
 #include <app/util/error-mapping.h>
 #include <credentials/CHIPCert.h>
 #include <credentials/DeviceAttestationCredsProvider.h>
@@ -328,7 +328,7 @@ CHIP_ERROR DeviceController::DisconnectDevice(NodeId nodeId)
 {
     ChipLogProgress(Controller, "Force close session for node 0x%" PRIx64, nodeId);
 
-    OperationalDeviceProxy * proxy = mSystemState->CASESessionMgr()->FindExistingSession(GetPeerScopedId(nodeId));
+    OperationalSessionSetup * proxy = mSystemState->CASESessionMgr()->FindExistingSession(GetPeerScopedId(nodeId));
     if (proxy == nullptr)
     {
         ChipLogProgress(Controller, "Attempted to close a session that does not exist.");
@@ -1573,7 +1573,12 @@ void DeviceCommissioner::CommissioningStageComplete(CHIP_ERROR err, Commissionin
     }
 }
 
-void DeviceCommissioner::OnDeviceConnectedFn(void * context, OperationalDeviceProxy * device)
+// TODO this global variable is a hack right now, need to figure out what the lifetime of this DeviceProxy is used
+// for and maintain this value appropriatly.
+OperationalDeviceProxy foobar;
+
+void DeviceCommissioner::OnDeviceConnectedFn(void * context, Messaging::ExchangeManager & exchangeMgr,
+                                             SessionHandle & sessionHandle)
 {
     // CASE session established.
     DeviceCommissioner * commissioner = static_cast<DeviceCommissioner *>(context);
@@ -1587,7 +1592,7 @@ void DeviceCommissioner::OnDeviceConnectedFn(void * context, OperationalDevicePr
     }
 
     if (commissioner->mDeviceBeingCommissioned == nullptr ||
-        commissioner->mDeviceBeingCommissioned->GetDeviceId() != device->GetDeviceId())
+        commissioner->mDeviceBeingCommissioned->GetDeviceId() != sessionHandle->GetPeer().GetNodeId())
     {
         // Not the device we are trying to commission.
         return;
@@ -1595,8 +1600,9 @@ void DeviceCommissioner::OnDeviceConnectedFn(void * context, OperationalDevicePr
 
     if (commissioner->mCommissioningDelegate != nullptr)
     {
+        foobar = OperationalDeviceProxy(&exchangeMgr, sessionHandle);
         CommissioningDelegate::CommissioningReport report;
-        report.Set<OperationalNodeFoundData>(OperationalNodeFoundData(device));
+        report.Set<OperationalNodeFoundData>(OperationalNodeFoundData(&foobar));
         commissioner->CommissioningStageComplete(CHIP_NO_ERROR, report);
     }
 }
@@ -2218,23 +2224,23 @@ CHIP_ERROR DeviceController::UpdateDevice(NodeId peerNodeId)
 {
     VerifyOrReturnError(mState == State::Initialized && mFabricIndex != kUndefinedFabricIndex, CHIP_ERROR_INCORRECT_STATE);
 
-    OperationalDeviceProxy * proxy = GetDeviceSession(GetPeerScopedId(peerNodeId));
+    OperationalSessionSetup * proxy = GetDeviceSession(GetPeerScopedId(peerNodeId));
     VerifyOrReturnError(proxy != nullptr, CHIP_ERROR_NOT_FOUND);
 
     return proxy->LookupPeerAddress();
 }
 
-OperationalDeviceProxy * DeviceController::GetDeviceSession(const ScopedNodeId & peerId)
+OperationalSessionSetup * DeviceController::GetDeviceSession(const ScopedNodeId & peerId)
 {
     return mSystemState->CASESessionMgr()->FindExistingSession(peerId);
 }
 
-OperationalDeviceProxy * DeviceCommissioner::GetDeviceSession(const ScopedNodeId & peerId)
+OperationalSessionSetup * DeviceCommissioner::GetDeviceSession(const ScopedNodeId & peerId)
 {
     mSystemState->CASESessionMgr()->FindOrEstablishSession(peerId, &mOnDeviceConnectedCallback,
                                                            &mOnDeviceConnectionFailureCallback);
 
-    // If there is an OperationalDeviceProxy for this peerId now the call to the
+    // If there is an OperationalSessionSetup for this peerId now the call to the
     // superclass will return it.
     return DeviceController::GetDeviceSession(peerId);
 }

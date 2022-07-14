@@ -15,14 +15,15 @@
  *    limitations under the License.
  */
 
-#include <Credentials/GroupDataProviderImpl.h>
-#include <app/OperationalDeviceProxy.h>
+#include <app/OperationalSessionSetup.h>
+#include <credentials/GroupDataProvider.h>
 #include <inet/IPAddress.h>
 #include <lib/support/CHIPMem.h>
 #include <lib/support/TestPersistentStorageDelegate.h>
 #include <lib/support/UnitTestRegistration.h>
 #include <nlunit-test.h>
 #include <protocols/secure_channel/MessageCounterManager.h>
+#include <protocols/secure_channel/SimpleSessionResumptionStorage.h>
 #include <system/SystemLayerImpl.h>
 #include <transport/SessionManager.h>
 #include <transport/TransportMgr.h>
@@ -39,7 +40,13 @@ namespace {
 
 using TestTransportMgr = TransportMgr<Transport::UDP>;
 
-void TestOperationalDeviceProxy_EstablishSessionDirectly(nlTestSuite * inSuite, void * inContext)
+class SessionReleaser : public OperationalReleaseDelegate
+{
+public:
+    void ReleaseSession(PeerId peerId) override {}
+};
+
+void TestOperationalSessionSetup_EstablishSessionDirectly(nlTestSuite * inSuite, void * inContext)
 {
     // TODO: This test appears not to be workable since it does not init the fabric table!!!
     Platform::MemoryInit();
@@ -57,6 +64,7 @@ void TestOperationalDeviceProxy_EstablishSessionDirectly(nlTestSuite * inSuite, 
     secure_channel::MessageCounterManager messageCounterManager;
     chip::TestPersistentStorageDelegate deviceStorage;
     GroupDataProviderImpl groupDataProvider;
+    SessionReleaser sessionRelease;
 
     systemLayer.Init();
     udpEndPointManager.Init(systemLayer);
@@ -77,7 +85,7 @@ void TestOperationalDeviceProxy_EstablishSessionDirectly(nlTestSuite * inSuite, 
         .groupDataProvider        = &groupDataProvider,
     };
     NodeId mockNodeId = 1;
-    OperationalDeviceProxy device(params, PeerId().SetNodeId(mockNodeId));
+    OperationalSessionSetup device(params, PeerId().SetNodeId(mockNodeId), sessionRelease);
     Inet::IPAddress mockAddr;
     Inet::IPAddress::FromString("127.0.0.1", mockAddr);
     PeerAddress addr = PeerAddress::UDP(mockAddr, CHIP_PORT);
@@ -99,20 +107,20 @@ void TestOperationalDeviceProxy_EstablishSessionDirectly(nlTestSuite * inSuite, 
 // clang-format off
 const nlTest sTests[] =
 {
-    NL_TEST_DEF("TestOperationalDeviceProxy_EstablishSessionDirectly", TestOperationalDeviceProxy_EstablishSessionDirectly),
+    NL_TEST_DEF("TestOperationalSessionSetup_EstablishSessionDirectly", TestOperationalSessionSetup_EstablishSessionDirectly),
     NL_TEST_SENTINEL()
 };
 // clang-format on
 
 } // namespace
 
-int TestOperationalDeviceProxy()
+int TestOperationalSessionSetup()
 {
-    nlTestSuite theSuite = { "OperationalDeviceProxy", &sTests[0], NULL, NULL };
+    nlTestSuite theSuite = { "OperationalSessionSetup", &sTests[0], NULL, NULL };
     nlTestRunner(&theSuite, nullptr);
     return nlTestRunnerStats(&theSuite);
 }
 
-CHIP_REGISTER_TEST_SUITE(TestOperationalDeviceProxy)
+CHIP_REGISTER_TEST_SUITE(TestOperationalSessionSetup)
 
 #endif // INET_CONFIG_ENABLE_IPV4
