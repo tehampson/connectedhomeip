@@ -51,7 +51,8 @@ Engine sShellSwitchBindingSubCommands;
 
 namespace {
 
-void ProcessOnOffUnicastBindingCommand(CommandId commandId, const EmberBindingTableEntry & binding, FoobarDeviceProxy * peer_device)
+void ProcessOnOffUnicastBindingCommand(CommandId commandId, const EmberBindingTableEntry & binding,
+                                       Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle)
 {
     auto onSuccess = [](const ConcreteCommandPath & commandPath, const StatusIB & status, const auto & dataResponse) {
         ChipLogProgress(NotSpecified, "OnOff command succeeds");
@@ -65,20 +66,17 @@ void ProcessOnOffUnicastBindingCommand(CommandId commandId, const EmberBindingTa
     {
     case Clusters::OnOff::Commands::Toggle::Id:
         Clusters::OnOff::Commands::Toggle::Type toggleCommand;
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         toggleCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, binding.remote, toggleCommand, onSuccess, onFailure);
         break;
 
     case Clusters::OnOff::Commands::On::Id:
         Clusters::OnOff::Commands::On::Type onCommand;
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         onCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, binding.remote, onCommand, onSuccess, onFailure);
         break;
 
     case Clusters::OnOff::Commands::Off::Id:
         Clusters::OnOff::Commands::Off::Type offCommand;
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         offCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, binding.remote, offCommand, onSuccess, onFailure);
         break;
     }
 }
@@ -107,7 +105,8 @@ void ProcessOnOffGroupBindingCommand(CommandId commandId, const EmberBindingTabl
     }
 }
 
-void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, FoobarDeviceProxy * peer_device, void * context)
+void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, Messaging::ExchangeManager * exchangeMgr,
+                               SessionHandle * sessionHandle, void * context)
 {
     VerifyOrReturn(context != nullptr, ChipLogError(NotSpecified, "OnDeviceConnectedFn: context is null"));
     BindingCommandData * data = static_cast<BindingCommandData *>(context);
@@ -127,7 +126,8 @@ void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, FoobarDev
         switch (data->clusterId)
         {
         case Clusters::OnOff::Id:
-            ProcessOnOffUnicastBindingCommand(data->commandId, binding, peer_device);
+            VerifyOrDie(exchangeMgr != nullptr && sessionHandle != nullptr);
+            ProcessOnOffUnicastBindingCommand(data->commandId, binding, exchangeMgr, *sessionHandle);
             break;
         }
     }

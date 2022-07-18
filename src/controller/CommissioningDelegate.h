@@ -417,8 +417,8 @@ struct NocChain
 
 struct OperationalNodeFoundData
 {
-    OperationalNodeFoundData(FoobarDeviceProxy * proxy) : operationalProxy(proxy) {}
-    FoobarDeviceProxy * operationalProxy;
+    OperationalNodeFoundData(DeviceProxySession * proxy) : operationalProxy(proxy) {}
+    DeviceProxySession * operationalProxy;
 };
 
 struct NetworkClusterInfo

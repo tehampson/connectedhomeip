@@ -60,6 +60,16 @@ chip::PeerId PeerIdForNode(chip::FabricTable * fabricTable, chip::FabricIndex fa
     return fabricInfo->GetPeerIdForNode(node);
 }
 
+chip::ScopedNodeId ScopedNodeIdForNode(chip::FabricTable * fabricTable, chip::FabricIndex fabric, chip::NodeId node)
+{
+    const chip::FabricInfo * fabricInfo = fabricTable->FindFabricWithIndex(fabric);
+    if (fabricInfo == nullptr)
+    {
+        return chip::ScopedNodeId();
+    }
+    return fabricInfo->GetScopedNodeIdForNode(node);
+}
+
 } // namespace
 
 namespace chip {
@@ -134,13 +144,13 @@ CHIP_ERROR BindingManager::EstablishConnection(FabricIndex fabric, NodeId node)
     return mLastSessionEstablishmentError;
 }
 
-void BindingManager::HandleDeviceConnected(void * context, FoobarDeviceProxy device)
+void BindingManager::HandleDeviceConnected(void * context, Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle)
 {
     BindingManager * manager = static_cast<BindingManager *>(context);
-    manager->HandleDeviceConnected(device);
+    manager->HandleDeviceConnected(exchangeMgr, sessionHandle);
 }
 
-void BindingManager::HandleDeviceConnected(FoobarDeviceProxy & device)
+void BindingManager::HandleDeviceConnected(Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle)
 {
     FabricIndex fabricToRemove = kUndefinedFabricIndex;
     NodeId nodeToRemove        = kUndefinedNodeId;
@@ -151,12 +161,12 @@ void BindingManager::HandleDeviceConnected(FoobarDeviceProxy & device)
     {
         EmberBindingTableEntry entry = BindingTable::GetInstance().GetAt(pendingNotification.mBindingEntryId);
 
-        PeerId peer = PeerIdForNode(mInitParams.mFabricTable, entry.fabricIndex, entry.nodeId);
-        if (device.GetPeerId() == peer)
+        ScopedNodeId peer = ScopedNodeIdForNode(mInitParams.mFabricTable, entry.fabricIndex, entry.nodeId);
+        if (sessionHandle->GetPeer() == peer)
         {
             fabricToRemove = entry.fabricIndex;
             nodeToRemove   = entry.nodeId;
-            mBoundDeviceChangedHandler(entry, &device, pendingNotification.mContext->GetContext());
+            mBoundDeviceChangedHandler(entry, exchangeMgr, &sessionHandle, pendingNotification.mContext->GetContext());
         }
     }
     mPendingNotificationMap.RemoveAllEntriesForNode(fabricToRemove, nodeToRemove);
@@ -208,7 +218,7 @@ CHIP_ERROR BindingManager::NotifyBoundClusterChanged(EndpointId endpoint, Cluste
             }
             else if (iter->type == EMBER_MULTICAST_BINDING)
             {
-                mBoundDeviceChangedHandler(*iter, nullptr, bindingContext->GetContext());
+                mBoundDeviceChangedHandler(*iter, nullptr, nullptr, bindingContext->GetContext());
             }
         }
     }

@@ -431,7 +431,7 @@ CHIP_ERROR DefaultOTARequestor::GetUpdateStateAttribute(EndpointId endpointId, O
 }
 
 // Called whenever FindOrEstablishSession is successful
-void DefaultOTARequestor::OnConnected(void * context, FoobarDeviceProxy deviceProxy)
+void DefaultOTARequestor::OnConnected(void * context, Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle)
 {
     DefaultOTARequestor * requestorCore = static_cast<DefaultOTARequestor *>(context);
     VerifyOrDie(requestorCore != nullptr);
@@ -439,7 +439,7 @@ void DefaultOTARequestor::OnConnected(void * context, FoobarDeviceProxy devicePr
     switch (requestorCore->mOnConnectedAction)
     {
     case kQueryImage: {
-        CHIP_ERROR err = requestorCore->SendQueryImageRequest(deviceProxy);
+        CHIP_ERROR err = requestorCore->SendQueryImageRequest(exchangeMgr, sessionHandle);
 
         if (err != CHIP_NO_ERROR)
         {
@@ -450,7 +450,7 @@ void DefaultOTARequestor::OnConnected(void * context, FoobarDeviceProxy devicePr
         break;
     }
     case kDownload: {
-        CHIP_ERROR err = requestorCore->StartDownload(deviceProxy);
+        CHIP_ERROR err = requestorCore->StartDownload(exchangeMgr, sessionHandle);
 
         if (err != CHIP_NO_ERROR)
         {
@@ -461,7 +461,7 @@ void DefaultOTARequestor::OnConnected(void * context, FoobarDeviceProxy devicePr
         break;
     }
     case kApplyUpdate: {
-        CHIP_ERROR err = requestorCore->SendApplyUpdateRequest(deviceProxy);
+        CHIP_ERROR err = requestorCore->SendApplyUpdateRequest(exchangeMgr, sessionHandle);
 
         if (err != CHIP_NO_ERROR)
         {
@@ -472,7 +472,7 @@ void DefaultOTARequestor::OnConnected(void * context, FoobarDeviceProxy devicePr
         break;
     }
     case kNotifyUpdateApplied: {
-        CHIP_ERROR err = requestorCore->SendNotifyUpdateAppliedRequest(deviceProxy);
+        CHIP_ERROR err = requestorCore->SendNotifyUpdateAppliedRequest(exchangeMgr, sessionHandle);
 
         if (err != CHIP_NO_ERROR)
         {
@@ -738,7 +738,7 @@ CHIP_ERROR DefaultOTARequestor::GenerateUpdateToken()
     return CHIP_NO_ERROR;
 }
 
-CHIP_ERROR DefaultOTARequestor::SendQueryImageRequest(FoobarDeviceProxy & deviceProxy)
+CHIP_ERROR DefaultOTARequestor::SendQueryImageRequest(Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle)
 {
     VerifyOrReturnError(mProviderLocation.HasValue(), CHIP_ERROR_INCORRECT_STATE);
 
@@ -774,8 +774,7 @@ CHIP_ERROR DefaultOTARequestor::SendQueryImageRequest(FoobarDeviceProxy & device
         args.location.SetValue(CharSpan("XX", strlen("XX")));
     }
 
-    Controller::OtaSoftwareUpdateProviderCluster cluster(*deviceProxy.GetExchangeManager(), deviceProxy.GetSecureSession().Value(),
-                                                         mProviderLocation.Value().endpoint);
+    Controller::OtaSoftwareUpdateProviderCluster cluster(*exchangeMgr, sessionHandle, mProviderLocation.Value().endpoint);
 
     return cluster.InvokeCommand(args, this, OnQueryImageResponse, OnQueryImageFailure);
 }
@@ -806,7 +805,7 @@ CHIP_ERROR DefaultOTARequestor::ExtractUpdateDescription(const QueryImageRespons
     return CHIP_NO_ERROR;
 }
 
-CHIP_ERROR DefaultOTARequestor::StartDownload(FoobarDeviceProxy & deviceProxy)
+CHIP_ERROR DefaultOTARequestor::StartDownload(Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle)
 {
     VerifyOrReturnError(mBdxDownloader != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
@@ -818,13 +817,7 @@ CHIP_ERROR DefaultOTARequestor::StartDownload(FoobarDeviceProxy & deviceProxy)
     initOptions.FileDesLength    = static_cast<uint16_t>(mFileDesignator.size());
     initOptions.FileDesignator   = reinterpret_cast<const uint8_t *>(mFileDesignator.data());
 
-    chip::Messaging::ExchangeManager * exchangeMgr = deviceProxy.GetExchangeManager();
-    VerifyOrReturnError(exchangeMgr != nullptr, CHIP_ERROR_INCORRECT_STATE);
-
-    Optional<SessionHandle> session = deviceProxy.GetSecureSession();
-    VerifyOrReturnError(session.HasValue(), CHIP_ERROR_INCORRECT_STATE);
-
-    chip::Messaging::ExchangeContext * exchangeCtx = exchangeMgr->NewContext(session.Value(), &mBdxMessenger);
+    chip::Messaging::ExchangeContext * exchangeCtx = exchangeMgr->NewContext(sessionHandle, &mBdxMessenger);
     VerifyOrReturnError(exchangeCtx != nullptr, CHIP_ERROR_NO_MEMORY);
 
     mBdxMessenger.Init(mBdxDownloader, exchangeCtx);
@@ -845,7 +838,7 @@ CHIP_ERROR DefaultOTARequestor::StartDownload(FoobarDeviceProxy & deviceProxy)
     return err;
 }
 
-CHIP_ERROR DefaultOTARequestor::SendApplyUpdateRequest(FoobarDeviceProxy & deviceProxy)
+CHIP_ERROR DefaultOTARequestor::SendApplyUpdateRequest(Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle)
 {
     VerifyOrReturnError(mProviderLocation.HasValue(), CHIP_ERROR_INCORRECT_STATE);
     ReturnErrorOnFailure(GenerateUpdateToken());
@@ -854,13 +847,13 @@ CHIP_ERROR DefaultOTARequestor::SendApplyUpdateRequest(FoobarDeviceProxy & devic
     args.updateToken = mUpdateToken;
     args.newVersion  = mTargetVersion;
 
-    Controller::OtaSoftwareUpdateProviderCluster cluster(*deviceProxy.GetExchangeManager(), deviceProxy.GetSecureSession().Value(),
-                                                         mProviderLocation.Value().endpoint);
+    Controller::OtaSoftwareUpdateProviderCluster cluster(*exchangeMgr, sessionHandle, mProviderLocation.Value().endpoint);
 
     return cluster.InvokeCommand(args, this, OnApplyUpdateResponse, OnApplyUpdateFailure);
 }
 
-CHIP_ERROR DefaultOTARequestor::SendNotifyUpdateAppliedRequest(FoobarDeviceProxy & deviceProxy)
+CHIP_ERROR DefaultOTARequestor::SendNotifyUpdateAppliedRequest(Messaging::ExchangeManager * exchangeMgr,
+                                                               SessionHandle & sessionHandle)
 {
     VerifyOrReturnError(mProviderLocation.HasValue(), CHIP_ERROR_INCORRECT_STATE);
     ReturnErrorOnFailure(GenerateUpdateToken());
@@ -869,8 +862,7 @@ CHIP_ERROR DefaultOTARequestor::SendNotifyUpdateAppliedRequest(FoobarDeviceProxy
     args.updateToken     = mUpdateToken;
     args.softwareVersion = mCurrentVersion;
 
-    Controller::OtaSoftwareUpdateProviderCluster cluster(*deviceProxy.GetExchangeManager(), deviceProxy.GetSecureSession().Value(),
-                                                         mProviderLocation.Value().endpoint);
+    Controller::OtaSoftwareUpdateProviderCluster cluster(*exchangeMgr, sessionHandle, mProviderLocation.Value().endpoint);
 
     // There is no response for a notify so consider this OTA complete. Clear the provider location and reset any states to indicate
     // so.

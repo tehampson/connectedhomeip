@@ -270,7 +270,8 @@ void OperationalDeviceProxy::DequeueConnectionCallbacks(CHIP_ERROR error)
         }
     }
 
-    FoobarDeviceProxy foobar = FoobarDeviceProxy(mPeerId, GetExchangeManager(), mSecureSession);
+    auto * exchangeMgr = GetExchangeManager();
+    auto sessionHandle = mSecureSession.Get();
     while (successReady.mNext != &successReady)
     {
         Callback::Callback<OnDeviceConnected> * cb = Callback::Callback<OnDeviceConnected>::FromCancelable(successReady.mNext);
@@ -278,7 +279,10 @@ void OperationalDeviceProxy::DequeueConnectionCallbacks(CHIP_ERROR error)
         cb->Cancel();
         if (error == CHIP_NO_ERROR)
         {
-            cb->mCall(cb->mContext, foobar);
+            // We know that we for sure have the SessionHandler in the successful case.
+            VerifyOrDie(exchangeMgr);
+            VerifyOrDie(sessionHandle.HasValue());
+            cb->mCall(cb->mContext, exchangeMgr, sessionHandle.Value());
         }
     }
 }

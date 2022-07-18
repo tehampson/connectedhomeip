@@ -51,7 +51,8 @@ Engine sShellSwitchBindingSubCommands;
 
 namespace {
 
-void ProcessOnOffUnicastBindingCommand(CommandId commandId, const EmberBindingTableEntry & binding, FoobarDeviceProxy * peer_device)
+void ProcessOnOffUnicastBindingCommand(CommandId commandId, const EmberBindingTableEntry & binding,
+                                       DeviceProxySession * peer_device)
 {
     auto onSuccess = [](const ConcreteCommandPath & commandPath, const StatusIB & status, const auto & dataResponse) {
         ChipLogProgress(NotSpecified, "OnOff command succeeds");
@@ -107,7 +108,8 @@ void ProcessOnOffGroupBindingCommand(CommandId commandId, const EmberBindingTabl
     }
 }
 
-void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, FoobarDeviceProxy * peer_device, void * context)
+void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, Messaging::ExchangeManager * exchangeMgr,
+                               SessionHandle & sessionHandle, void * context)
 {
     VerifyOrReturn(context != nullptr, ChipLogError(NotSpecified, "OnDeviceConnectedFn: context is null"));
     BindingCommandData * data = static_cast<BindingCommandData *>(context);
@@ -126,6 +128,8 @@ void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, FoobarDev
         switch (data->clusterId)
         {
         case Clusters::OnOff::Id:
+            // TODO remove this DeviceProxySession and pass in data directly
+            DeviceProxySession peer_device(exchangeMgr, sessionHandle);
             ProcessOnOffUnicastBindingCommand(data->commandId, binding, peer_device);
             break;
         }

@@ -67,7 +67,8 @@ static void RegisterSwitchCommands()
 }
 #endif // defined(ENABLE_CHIP_SHELL)
 
-static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, chip::FoobarDeviceProxy * peer_device, void * context)
+static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, chip::Messaging::ExchangeManager * exchangeMgr,
+                                      chip::SessionHandle * sessionHandle, void * context)
 {
     using namespace chip;
     using namespace chip::app;
@@ -88,17 +89,16 @@ static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, ch
             ChipLogError(NotSpecified, "OnOff command failed: %" CHIP_ERROR_FORMAT, error.Format());
         };
 
+        VerifyOrDie(exchangeMgr != nullptr && sessionHandle != nullptr);
         if (sSwitchOnOffState)
         {
             Clusters::OnOff::Commands::On::Type onCommand;
-            Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, onCommand, onSuccess, onFailure);
+            Controller::InvokeCommandRequest(exchangeMgr, *sessionHandle, binding.remote, onCommand, onSuccess, onFailure);
         }
         else
         {
             Clusters::OnOff::Commands::Off::Type offCommand;
-            Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, offCommand, onSuccess, onFailure);
+            Controller::InvokeCommandRequest(exchangeMgr, *sessionHandle, binding.remote, offCommand, onSuccess, onFailure);
         }
     }
 }

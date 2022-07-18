@@ -68,7 +68,8 @@ static void RegisterSwitchCommands()
 }
 #endif // defined(ENABLE_CHIP_SHELL)
 
-static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, chip::FoobarDeviceProxy * peer_device, void * context)
+static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, Messaging::ExchangeManager * exchangeMgr,
+                                      SessionHandle * sessionHandle, void * context)
 {
     using namespace chip;
     using namespace chip::app;
@@ -92,8 +93,8 @@ static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, ch
         // command (SwitchCommandHandler)
         {
             Clusters::OnOff::Commands::Toggle::Type toggleCommand;
-            Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, toggleCommand, onSuccess, onFailure);
+            VerifyOrDie(exchangeMgr != nullptr && sessionHandle != nullptr);
+            Controller::InvokeCommandRequest(exchangeMgr, *sessionHandle, binding.remote, toggleCommand, onSuccess, onFailure);
         }
     }
 }

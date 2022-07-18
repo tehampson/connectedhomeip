@@ -751,7 +751,7 @@ private:
     /* Callback called when adding root cert to device results in failure */
     static void OnRootCertFailureResponse(void * context, CHIP_ERROR error);
 
-    static void OnDeviceConnectedFn(void * context, FoobarDeviceProxy device);
+    static void OnDeviceConnectedFn(void * context, Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle);
     static void OnDeviceConnectionFailureFn(void * context, PeerId peerId, CHIP_ERROR error);
 
     static void OnDeviceAttestationInformationVerification(void * context, Credentials::AttestationVerificationResult result);

@@ -609,7 +609,9 @@ const char * pychip_Stack_StatusReportToString(uint32_t profileId, uint16_t stat
 
 namespace {
 
-FoobarDeviceProxy foobar;
+// TODO This is a hack right now. I will need to figure out where this should
+// actually live, the lifetime of it and be sure it is cleaned up properly.
+DeviceProxySession foobar;
 
 struct GetDeviceCallbacks
 {
@@ -617,10 +619,10 @@ struct GetDeviceCallbacks
         mOnSuccess(OnDeviceConnectedFn, this), mOnFailure(OnConnectionFailureFn, this), mCallback(callback)
     {}
 
-    static void OnDeviceConnectedFn(void * context, FoobarDeviceProxy device)
+    static void OnDeviceConnectedFn(void * context, Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle)
     {
         auto * self = static_cast<GetDeviceCallbacks *>(context);
-        foobar = device;
+        foobar      = DeviceProxySession(exchangeMgr, sessionHandle);
         // TODO TMsg: this is a hack, this makes it so that we cannot perform parallel task.
         self->mCallback(&foobar, CHIP_NO_ERROR.AsInteger());
         delete self;

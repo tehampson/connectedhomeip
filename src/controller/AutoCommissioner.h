@@ -63,7 +63,7 @@ private:
 
     DeviceCommissioner * mCommissioner                               = nullptr;
     CommissioneeDeviceProxy * mCommissioneeDeviceProxy               = nullptr;
-    FoobarDeviceProxy * mOperationalDeviceProxy                      = nullptr;
+    DeviceProxySession * mOperationalDeviceProxy                     = nullptr;
     OperationalCredentialsDelegate * mOperationalCredentialsDelegate = nullptr;
     CommissioningParameters mParams                                  = CommissioningParameters();
     // Memory space for the commisisoning parameters that come in as ByteSpans - the caller is not guaranteed to retain this memory

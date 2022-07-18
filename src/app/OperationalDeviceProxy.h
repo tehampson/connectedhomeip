@@ -72,29 +72,50 @@ struct DeviceProxyInitParams
 
 class OperationalDeviceProxy;
 
-class FoobarDeviceProxy : public DeviceProxy {
+/**
+ * @brief Helper function as applications refactor away from holding onto a device proxy.
+ *
+ * Deprecated - Avoid using this object.
+ *
+ * This is an object that is meant to only be used by application that previously incorrectly held onto
+ * OperationDeviceProxy in previous implementations of OnDeviceConnected. It is expected that over time
+ * all instances of DeviceProxySession will be refactored out of existence.
+ */
+class DeviceProxySession : public DeviceProxy
+{
 public:
-    FoobarDeviceProxy(const PeerId & peerId, Messaging::ExchangeManager * exchangeMgr, SessionHolder sessionHolder) :
-        mPeerId(peerId),
-        mExchangeMgr(exchangeMgr),
-        mSecureSession(sessionHolder) {}
-    FoobarDeviceProxy() {}
-    void ShutdownSubscriptions() override { VerifyOrDie(false); }  // Currently not implemented.
-    void Disconnect() override { mSecureSession.Release(); }
+    DeviceProxySession(Messaging::ExchangeManager * exchangeMgr, const SessionHandle & sessionHandle) :
+        mExchangeMgr(exchangeMgr), mSecureSession(sessionHandle), mPeerScopedNodeId(sessionHandle->GetPeer())
+    {}
+    DeviceProxySession() {}
+
+    void ShutdownSubscriptions() override { VerifyOrDie(false); } // Currently not implemented.
+    void Disconnect() override
+    {
+        // TODO should I be cleaning up mExchangeMgr, and mPeerScopedNodeId.
+        mSecureSession.Release();
+    }
     Messaging::ExchangeManager * GetExchangeManager() const override { return mExchangeMgr; }
     chip::Optional<SessionHandle> GetSecureSession() const override { return mSecureSession.Get(); }
-    NodeId GetDeviceId() const override { return mPeerId.GetNodeId(); }
-    PeerId GetPeerId() const { return mPeerId; }
+    NodeId GetDeviceId() const override { return mPeerScopedNodeId.GetNodeId(); }
+    ScopedNodeId GetPeerScopedNodeId() const { return mPeerScopedNodeId; }
 
 private:
     bool IsSecureConnected() const override { return static_cast<bool>(mSecureSession); }
 
-    PeerId mPeerId;
     Messaging::ExchangeManager * mExchangeMgr = nullptr;
     SessionHolder mSecureSession;
+    ScopedNodeId mPeerScopedNodeId;
 };
 
-typedef void (*OnDeviceConnected)(void * context, FoobarDeviceProxy device);
+/**
+ * @brief Callback prototype when secure session is established.
+ *
+ * Callback implementation are not supposed to store the exchangeMgr or the sessionHandle. Older
+ * application code does incorrectly held onto this information so do not follow those incorrect
+ * implementations as an example.
+ */
+typedef void (*OnDeviceConnected)(void * context, Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle);
 typedef void (*OnDeviceConnectionFailure)(void * context, PeerId peerId, CHIP_ERROR error);
 
 /**

@@ -1588,9 +1588,12 @@ void DeviceCommissioner::CommissioningStageComplete(CHIP_ERROR err, Commissionin
     }
 }
 
-FoobarDeviceProxy foobar;
+// TODO this global variable is a hack right now, need to figure out what the lifetime of this DeviceProxy is used
+// for and maintain this value appropriatly.
+DeviceProxySession foobar;
 
-void DeviceCommissioner::OnDeviceConnectedFn(void * context, FoobarDeviceProxy device)
+void DeviceCommissioner::OnDeviceConnectedFn(void * context, Messaging::ExchangeManager * exchangeMgr,
+                                             SessionHandle & sessionHandle)
 {
     // CASE session established.
     DeviceCommissioner * commissioner = static_cast<DeviceCommissioner *>(context);
@@ -1604,7 +1607,7 @@ void DeviceCommissioner::OnDeviceConnectedFn(void * context, FoobarDeviceProxy d
     }
 
     if (commissioner->mDeviceBeingCommissioned == nullptr ||
-        commissioner->mDeviceBeingCommissioned->GetDeviceId() != device.GetDeviceId())
+        commissioner->mDeviceBeingCommissioned->GetDeviceId() != sessionHandle->GetPeer().GetNodeId())
     {
         // Not the device we are trying to commission.
         return;
@@ -1612,7 +1615,7 @@ void DeviceCommissioner::OnDeviceConnectedFn(void * context, FoobarDeviceProxy d
 
     if (commissioner->mCommissioningDelegate != nullptr)
     {
-        foobar = device;
+        foobar = DeviceProxySession(exchangeMgr, sessionHandle);
         CommissioningDelegate::CommissioningReport report;
         report.Set<OperationalNodeFoundData>(OperationalNodeFoundData(&foobar));
         commissioner->CommissioningStageComplete(CHIP_NO_ERROR, report);
