@@ -52,7 +52,7 @@ Engine sShellSwitchBindingSubCommands;
 namespace {
 
 void ProcessOnOffUnicastBindingCommand(CommandId commandId, const EmberBindingTableEntry & binding,
-                                       Messaging::ExchangeManager * exchangeMgr, SessionHandle * sessionHandle)
+                                       Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle)
 {
     auto onSuccess = [](const ConcreteCommandPath & commandPath, const StatusIB & status, const auto & dataResponse) {
         ChipLogProgress(NotSpecified, "OnOff command succeeds");
@@ -62,7 +62,6 @@ void ProcessOnOffUnicastBindingCommand(CommandId commandId, const EmberBindingTa
         ChipLogError(NotSpecified, "OnOff command failed: %" CHIP_ERROR_FORMAT, error.Format());
     };
 
-    VerifyOrDie(exchangeMgr != nullptr && sessionHandle != nullptr);
     switch (commandId)
     {
     case Clusters::OnOff::Commands::Toggle::Id:
@@ -126,7 +125,8 @@ void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, Messaging
         switch (data->clusterId)
         {
         case Clusters::OnOff::Id:
-            ProcessOnOffUnicastBindingCommand(data->commandId, binding, exchangeMgr, sessionHandle);
+            VerifyOrDie(exchangeMgr != nullptr && sessionHandle != nullptr);
+            ProcessOnOffUnicastBindingCommand(data->commandId, binding, exchangeMgr, *sessionHandle);
             break;
         }
     }

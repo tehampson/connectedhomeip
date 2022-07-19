@@ -68,8 +68,8 @@ static void RegisterSwitchCommands()
 }
 #endif // defined(ENABLE_CHIP_SHELL)
 
-static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, Messaging::ExchangeManager * exchangeMgr,
-                                      SessionHandle * sessionHandle, void * context)
+static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, chip::Messaging::ExchangeManager * exchangeMgr,
+                                      chip::SessionHandle * sessionHandle, void * context)
 {
     using namespace chip;
     using namespace chip::app;

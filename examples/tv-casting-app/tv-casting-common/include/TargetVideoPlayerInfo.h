@@ -42,11 +42,11 @@ public:
     void PrintInfo();
 
 private:
-    static void HandleDeviceConnected(void * context, Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle)
+    static void HandleDeviceConnected(void * context, chip::Messaging::ExchangeManager & exchangeMgr, chip::SessionHandle & sessionHandle)
     {
         TargetVideoPlayerInfo * _this  = static_cast<TargetVideoPlayerInfo *>(context);
-        foobar                         = chip::DeviceProxySession(&exchangeMgr, sessionHandle);
-        _this->mOperationalDeviceProxy = &foobar;
+        _this->foobar                  = chip::DeviceProxySession(&exchangeMgr, sessionHandle);
+        _this->mOperationalDeviceProxy = &_this->foobar;
         _this->mInitialized            = true;
         ChipLogProgress(AppServer, "HandleDeviceConnected created an instance of OperationalDeviceProxy");
     }
@@ -57,12 +57,12 @@ private:
         _this->mOperationalDeviceProxy = nullptr;
     }
 
-    // TODO can we allocate this as a unique pointer?
-    static chip::DeviceProxySession foobar;
     static constexpr size_t kMaxNumberOfEndpoints = 5;
     TargetEndpointInfo mEndpoints[kMaxNumberOfEndpoints];
     chip::NodeId mNodeId;
     chip::FabricIndex mFabricIndex;
+    // TODO temp hack, can we allocate this as a unique pointer. If it has to be statically allocated where should we do it?
+    chip::DeviceProxySession foobar;
     chip::DeviceProxySession * mOperationalDeviceProxy = nullptr;
 
     chip::Callback::Callback<chip::OnDeviceConnected> mOnConnectedCallback;

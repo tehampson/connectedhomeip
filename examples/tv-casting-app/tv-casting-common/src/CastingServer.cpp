@@ -199,7 +199,7 @@ CHIP_ERROR CastingServer::ContentLauncherLaunchURL(const char * contentUrl, cons
     if (optionalSessionHandle.HasValue())
     {
         ChipLogError(AppServer, "Session Handle has expired");
-        return;
+        return CHIP_ERROR_PEER_NODE_NOT_FOUND;
     }
 
     ContentLauncherCluster cluster(*operationalDeviceProxy->GetExchangeManager(), optionalSessionHandle.Value(), kTvEndpoint);
