@@ -134,15 +134,22 @@ void CastingServer::ReadServerClustersForNode(NodeId nodeId)
 
 void CastingServer::ReadServerClusters(EndpointId endpointId)
 {
-    OperationalDeviceProxy * operationalDeviceProxy = mTargetVideoPlayerInfo.GetOperationalDeviceProxy();
+    DeviceProxySession * operationalDeviceProxy = mTargetVideoPlayerInfo.GetOperationalDeviceProxy();
     if (operationalDeviceProxy == nullptr)
     {
         ChipLogError(AppServer, "Failed in getting an instance of OperationalDeviceProxy");
         return;
     }
 
-    chip::Controller::DescriptorCluster cluster(*operationalDeviceProxy->GetExchangeManager(),
-                                                operationalDeviceProxy->GetSecureSession().Value(), endpointId);
+    auto optionalSessionHandle = operationalDeviceProxy->GetSecureSession();
+    if (optionalSessionHandle.HasValue())
+    {
+        ChipLogError(AppServer, "Session Handle has expired");
+        return;
+    }
+
+    chip::Controller::DescriptorCluster cluster(*operationalDeviceProxy->GetExchangeManager(), optionalSessionHandle.Value(),
+                                                endpointId);
 
     TargetEndpointInfo * endpointInfo = mTargetVideoPlayerInfo.GetOrAddEndpoint(endpointId);
 
@@ -181,15 +188,21 @@ void CastingServer::OnDescriptorReadFailureResponse(void * context, CHIP_ERROR e
 CHIP_ERROR CastingServer::ContentLauncherLaunchURL(const char * contentUrl, const char * contentDisplayStr,
                                                    std::function<void(CHIP_ERROR)> launchURLResponseCallback)
 {
-    OperationalDeviceProxy * operationalDeviceProxy = mTargetVideoPlayerInfo.GetOperationalDeviceProxy();
+    DeviceProxySession * operationalDeviceProxy = mTargetVideoPlayerInfo.GetOperationalDeviceProxy();
     if (operationalDeviceProxy == nullptr)
     {
         ChipLogError(AppServer, "Failed in getting an instance of OperationalDeviceProxy");
         return CHIP_ERROR_PEER_NODE_NOT_FOUND;
     }
 
-    ContentLauncherCluster cluster(*operationalDeviceProxy->GetExchangeManager(),
-                                   operationalDeviceProxy->GetSecureSession().Value(), kTvEndpoint);
+    auto optionalSessionHandle = operationalDeviceProxy->GetSecureSession();
+    if (optionalSessionHandle.HasValue())
+    {
+        ChipLogError(AppServer, "Session Handle has expired");
+        return;
+    }
+
+    ContentLauncherCluster cluster(*operationalDeviceProxy->GetExchangeManager(), optionalSessionHandle.Value(), kTvEndpoint);
     CastingServer::GetInstance()->mLaunchURLResponseCallback = launchURLResponseCallback;
     LaunchURL::Type request;
     request.contentURL          = chip::CharSpan::fromCharString(contentUrl);

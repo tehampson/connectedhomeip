@@ -78,7 +78,7 @@ void BindingHandler::OnInvokeCommandFailure(bool aEarlyExit, BindingData & aBind
 }
 
 void BindingHandler::OnOffProcessCommand(CommandId aCommandId, const EmberBindingTableEntry & aBinding,
-                                         Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle, void * aContext)
+                                         Messaging::ExchangeManager * exchangeMgr, SessionHandle * sessionHandle, void * aContext)
 {
     CHIP_ERROR ret     = CHIP_NO_ERROR;
     BindingData * data = reinterpret_cast<BindingData *>(aContext);

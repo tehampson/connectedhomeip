@@ -124,14 +124,14 @@ CHIP_ERROR CommissioningWindowOpener::OpenCommissioningWindow(NodeId deviceId, S
     return mController->GetConnectedDevice(mNodeId, &mDeviceConnected, &mDeviceConnectionFailure);
 }
 
-CHIP_ERROR CommissioningWindowOpener::OpenCommissioningWindowInternal(Messaging::ExchangeManager * exchangeMgr,
+CHIP_ERROR CommissioningWindowOpener::OpenCommissioningWindowInternal(Messaging::ExchangeManager & exchangeMgr,
                                                                       SessionHandle & sessionHandle)
 {
     ChipLogProgress(Controller, "OpenCommissioningWindow for device ID %" PRIu64, mNodeId);
 
     constexpr EndpointId kAdministratorCommissioningClusterEndpoint = 0;
 
-    AdministratorCommissioningCluster cluster(*exchangeMgr, sessionHandle, kAdministratorCommissioningClusterEndpoint);
+    AdministratorCommissioningCluster cluster(exchangeMgr, sessionHandle, kAdministratorCommissioningClusterEndpoint);
 
     if (mCommissioningWindowOption != CommissioningWindowOption::kOriginalSetupCode)
     {
@@ -254,7 +254,7 @@ void CommissioningWindowOpener::OnOpenCommissioningWindowFailure(void * context,
     }
 }
 
-void CommissioningWindowOpener::OnDeviceConnectedCallback(void * context, Messaging::ExchangeManager * exchangeMgr,
+void CommissioningWindowOpener::OnDeviceConnectedCallback(void * context, Messaging::ExchangeManager & exchangeMgr,
                                                           SessionHandle & sessionHandle)
 {
     auto * self = static_cast<CommissioningWindowOpener *>(context);
@@ -268,7 +268,7 @@ void CommissioningWindowOpener::OnDeviceConnectedCallback(void * context, Messag
     {
     case Step::kReadVID: {
         constexpr EndpointId kBasicClusterEndpoint = 0;
-        BasicCluster cluster(*exchangeMgr, sessionHandle, kBasicClusterEndpoint);
+        BasicCluster cluster(exchangeMgr, sessionHandle, kBasicClusterEndpoint);
         err = cluster.ReadAttribute<app::Clusters::Basic::Attributes::VendorID::TypeInfo>(context, OnVIDReadResponse,
                                                                                           OnVIDPIDReadFailureResponse);
 #if CHIP_ERROR_LOGGING
@@ -278,7 +278,7 @@ void CommissioningWindowOpener::OnDeviceConnectedCallback(void * context, Messag
     }
     case Step::kReadPID: {
         constexpr EndpointId kBasicClusterEndpoint = 0;
-        BasicCluster cluster(*exchangeMgr, sessionHandle, kBasicClusterEndpoint);
+        BasicCluster cluster(exchangeMgr, sessionHandle, kBasicClusterEndpoint);
         err = cluster.ReadAttribute<app::Clusters::Basic::Attributes::ProductID::TypeInfo>(context, OnPIDReadResponse,
                                                                                            OnVIDPIDReadFailureResponse);
 #if CHIP_ERROR_LOGGING

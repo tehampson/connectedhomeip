@@ -1592,7 +1592,7 @@ void DeviceCommissioner::CommissioningStageComplete(CHIP_ERROR err, Commissionin
 // for and maintain this value appropriatly.
 DeviceProxySession foobar;
 
-void DeviceCommissioner::OnDeviceConnectedFn(void * context, Messaging::ExchangeManager * exchangeMgr,
+void DeviceCommissioner::OnDeviceConnectedFn(void * context, Messaging::ExchangeManager & exchangeMgr,
                                              SessionHandle & sessionHandle)
 {
     // CASE session established.
@@ -1615,7 +1615,7 @@ void DeviceCommissioner::OnDeviceConnectedFn(void * context, Messaging::Exchange
 
     if (commissioner->mCommissioningDelegate != nullptr)
     {
-        foobar = DeviceProxySession(exchangeMgr, sessionHandle);
+        foobar = DeviceProxySession(&exchangeMgr, sessionHandle);
         CommissioningDelegate::CommissioningReport report;
         report.Set<OperationalNodeFoundData>(OperationalNodeFoundData(&foobar));
         commissioner->CommissioningStageComplete(CHIP_NO_ERROR, report);

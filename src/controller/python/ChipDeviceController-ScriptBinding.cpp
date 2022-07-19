@@ -619,10 +619,10 @@ struct GetDeviceCallbacks
         mOnSuccess(OnDeviceConnectedFn, this), mOnFailure(OnConnectionFailureFn, this), mCallback(callback)
     {}
 
-    static void OnDeviceConnectedFn(void * context, Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle)
+    static void OnDeviceConnectedFn(void * context, Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle)
     {
         auto * self = static_cast<GetDeviceCallbacks *>(context);
-        foobar      = DeviceProxySession(exchangeMgr, sessionHandle);
+        foobar      = DeviceProxySession(&exchangeMgr, sessionHandle);
         // TODO TMsg: this is a hack, this makes it so that we cannot perform parallel task.
         self->mCallback(&foobar, CHIP_NO_ERROR.AsInteger());
         delete self;

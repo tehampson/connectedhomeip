@@ -68,7 +68,7 @@ protected:
     chip::DeviceProxy * GetDevice(const char * identity) override { return &mDevices[identity]; }
     void OnResponse(const chip::app::StatusIB & status, chip::TLV::TLVReader * data) override{};
 
-    static void OnDeviceConnectedFn(void * context, chip::Messaging::ExchangeManager * exchangeMgr,
+    static void OnDeviceConnectedFn(void * context, chip::Messaging::ExchangeManager & exchangeMgr,
                                     chip::SessionHandle & sessionHandle);
     static void OnDeviceConnectionFailureFn(void * context, PeerId peerId, CHIP_ERROR error);
 

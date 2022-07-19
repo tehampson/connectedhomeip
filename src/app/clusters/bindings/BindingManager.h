@@ -125,8 +125,8 @@ public:
 private:
     static BindingManager sBindingManager;
 
-    static void HandleDeviceConnected(void * context, Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle);
-    void HandleDeviceConnected(Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle);
+    static void HandleDeviceConnected(void * context, Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle);
+    void HandleDeviceConnected(Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle);
 
     static void HandleDeviceConnectionFailure(void * context, PeerId peerId, CHIP_ERROR error);
     void HandleDeviceConnectionFailure(PeerId peerId, CHIP_ERROR error);

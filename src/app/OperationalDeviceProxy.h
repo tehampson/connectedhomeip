@@ -73,13 +73,16 @@ struct DeviceProxyInitParams
 class OperationalDeviceProxy;
 
 /**
- * @brief Helper function as applications refactor away from holding onto a device proxy.
+ * @brief Minimal implementation of DeviceProxy that encapsulates a SessionHolder to track a CASE session.
  *
  * Deprecated - Avoid using this object.
  *
- * This is an object that is meant to only be used by application that previously incorrectly held onto
- * OperationDeviceProxy in previous implementations of OnDeviceConnected. It is expected that over time
- * all instances of DeviceProxySession will be refactored out of existence.
+ * DeviceProxySession is a minimal implementation of DeviceProxy. It is meant to provide a transition
+ * for existing consumers of OperationalDeviceProxy that were delivered a reference to that object in
+ * their respective OnDeviceConnected callback, but were incorrectly holding onto that object pass
+ * the function call. DeviceProxySession can be held on for as long as is desired, while still
+ * minimizing the code changes needed to transition to a more final solution by virtue of
+ * implementing DeviceProxy.
  */
 class DeviceProxySession : public DeviceProxy
 {
@@ -115,7 +118,7 @@ private:
  * application code does incorrectly held onto this information so do not follow those incorrect
  * implementations as an example.
  */
-typedef void (*OnDeviceConnected)(void * context, Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle);
+typedef void (*OnDeviceConnected)(void * context, Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle);
 typedef void (*OnDeviceConnectionFailure)(void * context, PeerId peerId, CHIP_ERROR error);
 
 /**

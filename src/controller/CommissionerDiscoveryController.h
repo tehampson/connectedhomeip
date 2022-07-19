@@ -136,7 +136,9 @@ public:
      *  @param[in]    device             The device proxy for use in cluster communication.
      *
      */
-    virtual void CommissioningCompleted(uint16_t vendorId, uint16_t productId, NodeId nodeId, OperationalDeviceProxy * device) = 0;
+    // TODO update documentation above
+    virtual void CommissioningCompleted(uint16_t vendorId, uint16_t productId, NodeId nodeId,
+                                        chip::Messaging::ExchangeManager & exchangeMgr, chip::SessionHandle & sessionHandle) = 0;
 
     virtual ~PostCommissioningListener() = default;
 };
@@ -213,7 +215,9 @@ public:
      *  @param[in]    device             The device proxy for use in cluster communication.
      *
      */
-    void CommissioningSucceeded(uint16_t vendorId, uint16_t productId, NodeId nodeId, OperationalDeviceProxy * device);
+    // TODO update documentation above
+    void CommissioningSucceeded(uint16_t vendorId, uint16_t productId, NodeId nodeId,
+                                chip::Messaging::ExchangeManager & exchangeMgr, chip::SessionHandle & sessionHandle);
 
     /**
      * This method should be called by the commissioner to indicate that commissioning failed.

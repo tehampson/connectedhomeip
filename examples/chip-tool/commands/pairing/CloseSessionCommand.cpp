@@ -69,13 +69,13 @@ CHIP_ERROR CloseSessionCommand::CloseSession(DeviceProxy * device)
     return err;
 }
 
-void CloseSessionCommand::OnDeviceConnectedFn(void * context, Messaging::ExchangeManager * exchangeMgr,
+void CloseSessionCommand::OnDeviceConnectedFn(void * context, Messaging::ExchangeManager & exchangeMgr,
                                               SessionHandle & sessionHandle)
 {
     auto * command = reinterpret_cast<CloseSessionCommand *>(context);
     VerifyOrReturn(command != nullptr, ChipLogError(chipTool, "OnDeviceConnectedFn: context is null"));
 
-    DeviceProxySession device(exchangeMgr, sessionHandle);
+    DeviceProxySession device(&exchangeMgr, sessionHandle);
     CHIP_ERROR err = command->CloseSession(&device);
     VerifyOrReturn(CHIP_NO_ERROR == err, command->SetCommandExitStatus(err));
 }

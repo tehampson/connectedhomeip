@@ -282,7 +282,7 @@ void OperationalDeviceProxy::DequeueConnectionCallbacks(CHIP_ERROR error)
             // We know that we for sure have the SessionHandler in the successful case.
             VerifyOrDie(exchangeMgr);
             VerifyOrDie(sessionHandle.HasValue());
-            cb->mCall(cb->mContext, exchangeMgr, sessionHandle.Value());
+            cb->mCall(cb->mContext, *exchangeMgr, sessionHandle.Value());
         }
     }
 }

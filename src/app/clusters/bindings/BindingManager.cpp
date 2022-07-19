@@ -144,13 +144,13 @@ CHIP_ERROR BindingManager::EstablishConnection(FabricIndex fabric, NodeId node)
     return mLastSessionEstablishmentError;
 }
 
-void BindingManager::HandleDeviceConnected(void * context, Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle)
+void BindingManager::HandleDeviceConnected(void * context, Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle)
 {
     BindingManager * manager = static_cast<BindingManager *>(context);
     manager->HandleDeviceConnected(exchangeMgr, sessionHandle);
 }
 
-void BindingManager::HandleDeviceConnected(Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle)
+void BindingManager::HandleDeviceConnected(Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle)
 {
     FabricIndex fabricToRemove = kUndefinedFabricIndex;
     NodeId nodeToRemove        = kUndefinedNodeId;
@@ -166,7 +166,7 @@ void BindingManager::HandleDeviceConnected(Messaging::ExchangeManager * exchange
         {
             fabricToRemove = entry.fabricIndex;
             nodeToRemove   = entry.nodeId;
-            mBoundDeviceChangedHandler(entry, exchangeMgr, &sessionHandle, pendingNotification.mContext->GetContext());
+            mBoundDeviceChangedHandler(entry, &exchangeMgr, &sessionHandle, pendingNotification.mContext->GetContext());
         }
     }
     mPendingNotificationMap.RemoveAllEntriesForNode(fabricToRemove, nodeToRemove);

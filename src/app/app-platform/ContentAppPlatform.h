@@ -132,8 +132,8 @@ public:
      *
      * @return CHIP_ERROR         CHIP_NO_ERROR on success, or corresponding error
      */
-    CHIP_ERROR ManageClientAccess(OperationalDeviceProxy * targetDeviceProxy, uint16_t targetVendorId, NodeId localNodeId,
-                                  Controller::WriteResponseSuccessCallback successCb,
+    CHIP_ERROR ManageClientAccess(Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle, uint16_t targetVendorId,
+                                  NodeId localNodeId, Controller::WriteResponseSuccessCallback successCb,
                                   Controller::WriteResponseFailureCallback failureCb);
 
 protected:

@@ -48,13 +48,13 @@ CHIP_ERROR TestCommand::WaitForCommissionee(const char * identity,
                                                         &mOnDeviceConnectionFailureCallback);
 }
 
-void TestCommand::OnDeviceConnectedFn(void * context, chip::Messaging::ExchangeManager * exchangeMgr,
+void TestCommand::OnDeviceConnectedFn(void * context, chip::Messaging::ExchangeManager & exchangeMgr,
                                       chip::SessionHandle & sessionHandle)
 {
     ChipLogProgress(chipTool, " **** Test Setup: Device Connected\n");
     auto * command = static_cast<TestCommand *>(context);
     VerifyOrReturn(command != nullptr, ChipLogError(chipTool, "Device connected, but cannot run the test, as the context is null"));
-    command->mDevices[command->GetIdentity()] = chip::DeviceProxySession(exchangeMgr, sessionHandle);
+    command->mDevices[command->GetIdentity()] = chip::DeviceProxySession(&exchangeMgr, sessionHandle);
 
     LogErrorOnFailure(command->ContinueOnChipMainThread(CHIP_NO_ERROR));
 }

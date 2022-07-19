@@ -223,7 +223,7 @@ private:
     /**
      * Send QueryImage request using values matching Basic cluster
      */
-    CHIP_ERROR SendQueryImageRequest(Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle);
+    CHIP_ERROR SendQueryImageRequest(Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle);
 
     /**
      * Validate and extract mandatory information from QueryImageResponse
@@ -254,17 +254,17 @@ private:
     /**
      * Start download of the software image returned in QueryImageResponse
      */
-    CHIP_ERROR StartDownload(Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle);
+    CHIP_ERROR StartDownload(Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle);
 
     /**
      * Send ApplyUpdate request using values obtained from QueryImageResponse
      */
-    CHIP_ERROR SendApplyUpdateRequest(Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle);
+    CHIP_ERROR SendApplyUpdateRequest(Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle);
 
     /**
      * Send NotifyUpdateApplied request
      */
-    CHIP_ERROR SendNotifyUpdateAppliedRequest(Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle);
+    CHIP_ERROR SendNotifyUpdateAppliedRequest(Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle);
 
     /**
      * Store current update information to KVS
@@ -279,7 +279,7 @@ private:
     /**
      * Session connection callbacks
      */
-    static void OnConnected(void * context, Messaging::ExchangeManager * exchangeMgr, SessionHandle & sessionHandle);
+    static void OnConnected(void * context, Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle);
     static void OnConnectionFailure(void * context, PeerId peerId, CHIP_ERROR error);
     Callback::Callback<OnDeviceConnected> mOnConnectedCallback;
     Callback::Callback<OnDeviceConnectionFailure> mOnConnectionFailureCallback;

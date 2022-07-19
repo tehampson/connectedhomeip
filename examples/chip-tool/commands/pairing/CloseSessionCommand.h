@@ -46,7 +46,7 @@ private:
     chip::NodeId mDestinationId;
     chip::Optional<uint16_t> mTimeoutSecs;
 
-    static void OnDeviceConnectedFn(void * context, chip::Messaging::ExchangeManager * exchangeMgr,
+    static void OnDeviceConnectedFn(void * context, chip::Messaging::ExchangeManager & exchangeMgr,
                                     chip::SessionHandle & sessionHandle);
     static void OnDeviceConnectionFailureFn(void * context, PeerId peerId, CHIP_ERROR error);
 

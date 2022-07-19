@@ -32,7 +32,8 @@ public:
     bool IsInitialized() { return mInitialized; }
     chip::NodeId GetNodeId() const { return mNodeId; }
     chip::FabricIndex GetFabricIndex() const { return mFabricIndex; }
-    chip::OperationalDeviceProxy * GetOperationalDeviceProxy() const { return mOperationalDeviceProxy; }
+    // TODO consider renaming GetOperationalDeviceProxy
+    chip::DeviceProxySession * GetOperationalDeviceProxy() const { return mOperationalDeviceProxy; }
 
     CHIP_ERROR Initialize(chip::NodeId nodeId, chip::FabricIndex fabricIndex);
     TargetEndpointInfo * GetOrAddEndpoint(chip::EndpointId endpointId);
@@ -41,10 +42,11 @@ public:
     void PrintInfo();
 
 private:
-    static void HandleDeviceConnected(void * context, chip::OperationalDeviceProxy * device)
+    static void HandleDeviceConnected(void * context, Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle)
     {
         TargetVideoPlayerInfo * _this  = static_cast<TargetVideoPlayerInfo *>(context);
-        _this->mOperationalDeviceProxy = device;
+        foobar                         = chip::DeviceProxySession(&exchangeMgr, sessionHandle);
+        _this->mOperationalDeviceProxy = &foobar;
         _this->mInitialized            = true;
         ChipLogProgress(AppServer, "HandleDeviceConnected created an instance of OperationalDeviceProxy");
     }
@@ -55,11 +57,13 @@ private:
         _this->mOperationalDeviceProxy = nullptr;
     }
 
+    // TODO can we allocate this as a unique pointer?
+    static chip::DeviceProxySession foobar;
     static constexpr size_t kMaxNumberOfEndpoints = 5;
     TargetEndpointInfo mEndpoints[kMaxNumberOfEndpoints];
     chip::NodeId mNodeId;
     chip::FabricIndex mFabricIndex;
-    chip::OperationalDeviceProxy * mOperationalDeviceProxy;
+    chip::DeviceProxySession * mOperationalDeviceProxy = nullptr;
 
     chip::Callback::Callback<chip::OnDeviceConnected> mOnConnectedCallback;
     chip::Callback::Callback<chip::OnDeviceConnectionFailure> mOnConnectionFailureCallback;
