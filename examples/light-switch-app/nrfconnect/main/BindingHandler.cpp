@@ -78,7 +78,7 @@ void BindingHandler::OnInvokeCommandFailure(bool aEarlyExit, BindingData & aBind
 }
 
 void BindingHandler::OnOffProcessCommand(CommandId aCommandId, const EmberBindingTableEntry & aBinding,
-                                         Messaging::ExchangeManager * exchangeMgr, SessionHandle * sessionHandle, void * aContext)
+                                         DeviceProxySession * device, void * aContext)
 {
     CHIP_ERROR ret     = CHIP_NO_ERROR;
     BindingData * data = reinterpret_cast<BindingData *>(aContext);
@@ -91,20 +91,28 @@ void BindingHandler::OnOffProcessCommand(CommandId aCommandId, const EmberBindin
             BindingHandler::GetInstance().mCaseSessionRecovered = false;
     };
 
-    bool earlyExit = exchangeMgr == nullptr || sessionHandle == nullptr;
+    bool earlyExit = device == nullptr;
     auto onFailure = [earlyExit, dataRef = *data](CHIP_ERROR aError) mutable {
         BindingHandler::OnInvokeCommandFailure(earlyExit, dataRef, aError);
     };
+
+    if (device) {
+        // We are validating we can get exchange manager and session handle from device
+        // before we blindly grab them for each InvokeCommandRequest below
+        auto * exchangeMgr = device->GetExchangeManager();
+        auto optionalSessionHandler = device->GetSecureSession()
+        VerifyOrDie(exchangeMgr != nullptr && optionalSessionHandler.HasValue());
+    }
 
     switch (aCommandId)
     {
     case Clusters::OnOff::Commands::Toggle::Id:
         Clusters::OnOff::Commands::Toggle::Type toggleCommand;
-        if (exchangeMgr)
+        if (device)
         {
             VerifyOrDie(sessionHandle != nullptr);
             ret =
-                Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, aBinding.remote, toggleCommand, onSuccess, onFailure);
+                Controller::InvokeCommandRequest(device->GetExchangeManager(), device->GetSecureSession().Value(), aBinding.remote, toggleCommand, onSuccess, onFailure);
         }
         else
         {
@@ -116,10 +124,10 @@ void BindingHandler::OnOffProcessCommand(CommandId aCommandId, const EmberBindin
 
     case Clusters::OnOff::Commands::On::Id:
         Clusters::OnOff::Commands::On::Type onCommand;
-        if (exchangeMgr)
+        if (device)
         {
             VerifyOrDie(sessionHandle != nullptr);
-            ret = Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, aBinding.remote, onCommand, onSuccess, onFailure);
+            ret = Controller::InvokeCommandRequest(device->GetExchangeManager(), device->GetSecureSession().Value(), aBinding.remote, onCommand, onSuccess, onFailure);
         }
         else
         {
@@ -130,10 +138,10 @@ void BindingHandler::OnOffProcessCommand(CommandId aCommandId, const EmberBindin
 
     case Clusters::OnOff::Commands::Off::Id:
         Clusters::OnOff::Commands::Off::Type offCommand;
-        if (exchangeMgr)
+        if (device)
         {
             VerifyOrDie(sessionHandle != nullptr);
-            ret = Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, aBinding.remote, offCommand, onSuccess, onFailure);
+            ret = Controller::InvokeCommandRequest(device->GetExchangeManager(), device->GetSecureSession().Value(), aBinding.remote, offCommand, onSuccess, onFailure);
         }
         else
         {
@@ -152,8 +160,7 @@ void BindingHandler::OnOffProcessCommand(CommandId aCommandId, const EmberBindin
 }
 
 void BindingHandler::LevelControlProcessCommand(CommandId aCommandId, const EmberBindingTableEntry & aBinding,
-                                                Messaging::ExchangeManager * exchangeMgr, SessionHandle * sessionHandle,
-                                                void * aContext)
+                                                DeviceProxySession * device, void * aContext)
 {
     BindingData * data = reinterpret_cast<BindingData *>(aContext);
 
@@ -165,12 +172,20 @@ void BindingHandler::LevelControlProcessCommand(CommandId aCommandId, const Embe
             BindingHandler::GetInstance().mCaseSessionRecovered = false;
     };
 
-    bool earlyExit = exchangeMgr == nullptr || sessionHandle == nullptr;
+    bool earlyExit = device == nullptr;
     auto onFailure = [earlyExit, dataRef = *data](CHIP_ERROR aError) mutable {
         BindingHandler::OnInvokeCommandFailure(earlyExit, dataRef, aError);
     };
 
     CHIP_ERROR ret = CHIP_NO_ERROR;
+
+    if (device) {
+        // We are validating we can get exchange manager and session handle from device
+        // before we blindly grab them for each InvokeCommandRequest below
+        auto * exchangeMgr = device->GetExchangeManager();
+        auto optionalSessionHandler = device->GetSecureSession()
+        VerifyOrDie(exchangeMgr != nullptr && optionalSessionHandler.HasValue());
+    }
 
     switch (aCommandId)
     {
@@ -180,7 +195,7 @@ void BindingHandler::LevelControlProcessCommand(CommandId aCommandId, const Embe
         if (exchangeMgr)
         {
             VerifyOrDie(sessionHandle != nullptr);
-            ret = Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, aBinding.remote, moveToLevelCommand, onSuccess,
+            ret = Controller::InvokeCommandRequest(device->GetExchangeManager(), device->GetSecureSession().Value(), aBinding.remote, moveToLevelCommand, onSuccess,
                                                    onFailure);
         }
         else
@@ -200,8 +215,7 @@ void BindingHandler::LevelControlProcessCommand(CommandId aCommandId, const Embe
     }
 }
 
-void BindingHandler::LightSwitchChangedHandler(const EmberBindingTableEntry & binding, Messaging::ExchangeManager * exchangeMgr,
-                                               SessionHandle * sessionHandle, void * context)
+void BindingHandler::LightSwitchChangedHandler(const EmberBindingTableEntry & binding, DeviceProxySession * device, void * context)
 {
     VerifyOrReturn(context != nullptr, LOG_ERR("Invalid context for Light switch handler"););
     BindingData * data = static_cast<BindingData *>(context);
@@ -211,10 +225,10 @@ void BindingHandler::LightSwitchChangedHandler(const EmberBindingTableEntry & bi
         switch (data->ClusterId)
         {
         case Clusters::OnOff::Id:
-            OnOffProcessCommand(data->CommandId, binding, nullptr, nullptr, context);
+            OnOffProcessCommand(data->CommandId, binding, device, context);
             break;
         case Clusters::LevelControl::Id:
-            LevelControlProcessCommand(data->CommandId, binding, nullptr, nullptr, context);
+            LevelControlProcessCommand(data->CommandId, binding, device, context);
             break;
         default:
             ChipLogError(NotSpecified, "Invalid binding group command data");
@@ -223,13 +237,14 @@ void BindingHandler::LightSwitchChangedHandler(const EmberBindingTableEntry & bi
     }
     else if (binding.type == EMBER_UNICAST_BINDING && !data->IsGroup)
     {
+
         switch (data->ClusterId)
         {
         case Clusters::OnOff::Id:
-            OnOffProcessCommand(data->CommandId, binding, exchangeMgr, sessionHandle, context);
+            OnOffProcessCommand(data->CommandId, binding, device, context);
             break;
         case Clusters::LevelControl::Id:
-            LevelControlProcessCommand(data->CommandId, binding, exchangeMgr, sessionHandle, context);
+            LevelControlProcessCommand(data->CommandId, binding, device, context);
             break;
         default:
             ChipLogError(NotSpecified, "Invalid binding unicast command data");

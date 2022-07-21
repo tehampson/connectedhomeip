@@ -39,8 +39,8 @@ namespace chip {
  *
  * The handler is not allowed to hold onto the pointer to the SessionHandler that is passed in.
  */
-using BoundDeviceChangedHandler = void (*)(const EmberBindingTableEntry & binding, Messaging::ExchangeManager * exchangeMgr,
-                                           SessionHandle * sessionHandle, void * context);
+using BoundDeviceChangedHandler = void (*)(const EmberBindingTableEntry & binding, DeviceProxySession * device,
+                                           void * context);
 
 /**
  * Application callback function when a context used in NotifyBoundClusterChanged will not be needed and should be

@@ -170,7 +170,8 @@ void BindingManager::HandleDeviceConnected(Messaging::ExchangeManager & exchange
         {
             fabricToRemove = entry.fabricIndex;
             nodeToRemove   = entry.nodeId;
-            mBoundDeviceChangedHandler(entry, &exchangeMgr, &sessionHandle, pendingNotification.mContext->GetContext());
+            DeviceProxySession device(&exchangeMgr, sessionHandle);
+            mBoundDeviceChangedHandler(entry, &device, pendingNotification.mContext->GetContext());
         }
     }
     mPendingNotificationMap.RemoveAllEntriesForNode(fabricToRemove, nodeToRemove);
@@ -222,7 +223,7 @@ CHIP_ERROR BindingManager::NotifyBoundClusterChanged(EndpointId endpoint, Cluste
             }
             else if (iter->type == EMBER_MULTICAST_BINDING)
             {
-                mBoundDeviceChangedHandler(*iter, nullptr, nullptr, bindingContext->GetContext());
+                mBoundDeviceChangedHandler(*iter, nullptr, bindingContext->GetContext());
             }
         }
     }
