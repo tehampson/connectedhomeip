@@ -133,10 +133,10 @@ public:
      *  @param[in]    vendorId           The vendorid from the DAC of the new node.
      *  @param[in]    productId          The productid from the DAC of the new node.
      *  @param[in]    nodeId             The node id for the newly commissioned node.
-     *  @param[in]    device             The device proxy for use in cluster communication.
+     *  @param[in]    exchangeMgr        The exchange manager to be used to get an exchange context.
+     *  @param[in]    sessionHandle      A reference to an established session.
      *
      */
-    // TODO update documentation above
     virtual void CommissioningCompleted(uint16_t vendorId, uint16_t productId, NodeId nodeId,
                                         chip::Messaging::ExchangeManager & exchangeMgr, chip::SessionHandle & sessionHandle) = 0;
 
@@ -212,10 +212,10 @@ public:
      *  @param[in]    vendorId           The vendorid from the DAC of the new node.
      *  @param[in]    productId          The productid from the DAC of the new node.
      *  @param[in]    nodeId             The node id for the newly commissioned node.
-     *  @param[in]    device             The device proxy for use in cluster communication.
+     *  @param[in]    exchangeMgr        The exchange manager to be used to get an exchange context.
+     *  @param[in]    sessionHandle      A reference to an established session.
      *
      */
-    // TODO update documentation above
     void CommissioningSucceeded(uint16_t vendorId, uint16_t productId, NodeId nodeId,
                                 chip::Messaging::ExchangeManager & exchangeMgr, chip::SessionHandle & sessionHandle);
 

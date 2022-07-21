@@ -52,6 +52,15 @@ void CASESessionManager::FindOrEstablishSession(PeerId peerId, Callback::Callbac
     }
 
     session->Connect(onConnection, onFailure);
+    // TODO this seems very hacky to me. Is there a better way????
+    // Up returning from Connect is it possible that `session` may have been released by the
+    // time Connect returns, so we need to get it again.
+    session = FindExistingSession(peerId);
+    if (session == nullptr)
+    {
+        // Connection has already been successfully established.
+        return;
+    }
     if (!session->IsConnected() && !session->IsConnecting() && !session->IsResolvingAddress())
     {
         // This session is not making progress toward anything.  It will have

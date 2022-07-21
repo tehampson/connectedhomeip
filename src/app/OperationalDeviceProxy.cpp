@@ -297,7 +297,11 @@ void OperationalDeviceProxy::DequeueConnectionCallbacks(CHIP_ERROR error)
         }
     }
 
-    releaseDelegate->ReleaseSession(peerId);
+    // TODO can I do a verify or die on this in the constructor to know it is
+    // for sure valid?
+    if (releaseDelegate) {
+        releaseDelegate->ReleaseSession(peerId);
+    }
 }
 
 void OperationalDeviceProxy::OnSessionEstablishmentError(CHIP_ERROR error)

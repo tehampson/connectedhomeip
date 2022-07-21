@@ -99,13 +99,19 @@ public:
     void ShutdownSubscriptions() override { VerifyOrDie(false); } // Currently not implemented.
     void Disconnect() override
     {
-        // TODO should I be cleaning up mExchangeMgr, and mPeerScopedNodeId.
         mSecureSession.Release();
+        mExchangeMgr = nullptr;
+        mPeerScopedNodeId = ScopedNodeId();
     }
     Messaging::ExchangeManager * GetExchangeManager() const override { return mExchangeMgr; }
     chip::Optional<SessionHandle> GetSecureSession() const override { return mSecureSession.Get(); }
     NodeId GetDeviceId() const override { return mPeerScopedNodeId.GetNodeId(); }
     ScopedNodeId GetPeerScopedNodeId() const { return mPeerScopedNodeId; }
+
+    bool ConnectionReady() const
+    {
+        return (mExchangeMgr != nullptr && IsSecureConnected());
+    }
 
 private:
     bool IsSecureConnected() const override { return static_cast<bool>(mSecureSession); }

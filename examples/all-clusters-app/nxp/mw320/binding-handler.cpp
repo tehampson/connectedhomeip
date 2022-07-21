@@ -96,6 +96,8 @@ static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, ch
             VerifyOrDie(device != nullptr);
             auto * exchangeMgr = device->GetExchangeManager();
             auto optionalSessionHandler = device->GetSecureSession();
+            // TODO, could probably get away with doing VerifyOrDie(device->ConnectionReady());, then just using it directly.
+            // This would be done in all spots where I am doing something similar.
             VerifyOrDie(exchangeMgr != nullptr && optionalSessionHandler.HasValue());
             Controller::InvokeCommandRequest(exchangeMgr, optionalSessionHandler.Value(), binding.remote, toggleCommand, onSuccess, onFailure);
         }

@@ -67,7 +67,6 @@ void ModelCommand::OnDeviceConnectedFn(void * context, Messaging::ExchangeManage
     ModelCommand * command = reinterpret_cast<ModelCommand *>(context);
     VerifyOrReturn(command != nullptr, ChipLogError(chipTool, "OnDeviceConnectedFn: context is null"));
 
-    // TODO figure out if this can actaully live on the stack, if so we likely can make changes all the way through
     DeviceProxySession device(&exchangeMgr, sessionHandle);
     CHIP_ERROR err = command->SendCommand(&device, command->mEndPointId);
     VerifyOrReturn(CHIP_NO_ERROR == err, command->SetCommandExitStatus(err));

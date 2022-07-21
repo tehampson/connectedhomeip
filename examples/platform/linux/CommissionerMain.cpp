@@ -320,7 +320,6 @@ void PairingCommand::OnDeviceConnectedFn(void * context, Messaging::ExchangeMana
         uint16_t productId = gAutoCommissioner.GetCommissioningParameters().GetRemoteProductId().Value();
         ChipLogProgress(Support, " ----- AutoCommissioner -- Commissionee vendorId=0x%04X productId=0x%04X", vendorId, productId);
 
-        // TODO Need to figure out what I need to do here
         cdc->CommissioningSucceeded(vendorId, productId, gRemoteId, exchangeMgr, sessionHandle);
     }
 }

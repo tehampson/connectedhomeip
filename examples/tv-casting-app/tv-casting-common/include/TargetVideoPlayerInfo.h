@@ -32,8 +32,14 @@ public:
     bool IsInitialized() { return mInitialized; }
     chip::NodeId GetNodeId() const { return mNodeId; }
     chip::FabricIndex GetFabricIndex() const { return mFabricIndex; }
-    // TODO consider renaming GetOperationalDeviceProxy
-    chip::DeviceProxySession * GetOperationalDeviceProxy() const { return mOperationalDeviceProxy; }
+    chip::DeviceProxySession * GetDeviceProxy() const
+    {
+        if mDeviceProxy.ConnectionReady()
+        {
+            return &mDeviceProxy;
+        }
+        return nullptr;
+    }
 
     CHIP_ERROR Initialize(chip::NodeId nodeId, chip::FabricIndex fabricIndex);
     TargetEndpointInfo * GetOrAddEndpoint(chip::EndpointId endpointId);
@@ -45,8 +51,7 @@ private:
     static void HandleDeviceConnected(void * context, chip::Messaging::ExchangeManager & exchangeMgr, chip::SessionHandle & sessionHandle)
     {
         TargetVideoPlayerInfo * _this  = static_cast<TargetVideoPlayerInfo *>(context);
-        _this->foobar                  = chip::DeviceProxySession(&exchangeMgr, sessionHandle);
-        _this->mOperationalDeviceProxy = &_this->foobar;
+        _this->mDeviceProxy            = chip::DeviceProxySession(&exchangeMgr, sessionHandle);
         _this->mInitialized            = true;
         ChipLogProgress(AppServer, "HandleDeviceConnected created an instance of DeviceProxySession");
     }
@@ -54,16 +59,14 @@ private:
     static void HandleDeviceConnectionFailure(void * context, chip::PeerId peerId, CHIP_ERROR error)
     {
         TargetVideoPlayerInfo * _this  = static_cast<TargetVideoPlayerInfo *>(context);
-        _this->mOperationalDeviceProxy = nullptr;
+        _this->mDeviceProxy = DeviceProxySession();
     }
 
     static constexpr size_t kMaxNumberOfEndpoints = 5;
     TargetEndpointInfo mEndpoints[kMaxNumberOfEndpoints];
     chip::NodeId mNodeId;
     chip::FabricIndex mFabricIndex;
-    // TODO temp hack, can we allocate this as a unique pointer. If it has to be statically allocated where should we do it?
-    chip::DeviceProxySession foobar;
-    chip::DeviceProxySession * mOperationalDeviceProxy = nullptr;
+    chip::DeviceProxySession mDeviceProxy;
 
     chip::Callback::Callback<chip::OnDeviceConnected> mOnConnectedCallback;
     chip::Callback::Callback<chip::OnDeviceConnectionFailure> mOnConnectionFailureCallback;
