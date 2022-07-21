@@ -39,6 +39,11 @@ namespace {
 
 using TestTransportMgr = TransportMgr<Transport::UDP>;
 
+class SessionReleaser : public OperationalReleaseDelegate {
+public:
+    void ReleaseSession(PeerId peerId) override {}
+};
+
 void TestOperationalDeviceProxy_EstablishSessionDirectly(nlTestSuite * inSuite, void * inContext)
 {
     // TODO: This test appears not to be workable since it does not init the fabric table!!!
@@ -57,6 +62,7 @@ void TestOperationalDeviceProxy_EstablishSessionDirectly(nlTestSuite * inSuite, 
     secure_channel::MessageCounterManager messageCounterManager;
     chip::TestPersistentStorageDelegate deviceStorage;
     GroupDataProviderImpl groupDataProvider;
+    SessionReleaser sessionRelease;
 
     systemLayer.Init();
     udpEndPointManager.Init(systemLayer);
@@ -77,7 +83,7 @@ void TestOperationalDeviceProxy_EstablishSessionDirectly(nlTestSuite * inSuite, 
         .groupDataProvider        = &groupDataProvider,
     };
     NodeId mockNodeId = 1;
-    OperationalDeviceProxy device(params, PeerId().SetNodeId(mockNodeId));
+    OperationalDeviceProxy device(params, PeerId().SetNodeId(mockNodeId), sessionRelease);
     Inet::IPAddress mockAddr;
     Inet::IPAddress::FromString("127.0.0.1", mockAddr);
     PeerAddress addr = PeerAddress::UDP(mockAddr, CHIP_PORT);

@@ -62,7 +62,11 @@ chip::PeerId PeerIdForNode(chip::FabricTable * fabricTable, chip::FabricIndex fa
 
 chip::ScopedNodeId ScopedNodeIdForNode(chip::FabricTable * fabricTable, chip::FabricIndex fabric, chip::NodeId node)
 {
-    const chip::FabricInfo * fabricInfo = fabricTable->FindFabricWithIndex(fabric);
+    if (fabricTable == nullptr)
+    {
+        return chip::ScopedNodeId();
+    }
+    auto * fabricInfo = fabricTable->FindFabricWithIndex(fabric);
     if (fabricInfo == nullptr)
     {
         return chip::ScopedNodeId();

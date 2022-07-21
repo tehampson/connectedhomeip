@@ -39,7 +39,7 @@ void CASESessionManager::FindOrEstablishSession(PeerId peerId, Callback::Callbac
     {
         ChipLogDetail(CASESessionManager, "FindOrEstablishSession: No existing OperationalDeviceProxy instance found");
 
-        session = mConfig.devicePool->Allocate(mConfig.sessionInitParams, peerId);
+        session = mConfig.devicePool->Allocate(mConfig.sessionInitParams, peerId, this);
 
         if (session == nullptr)
         {

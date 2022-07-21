@@ -48,7 +48,7 @@ private:
         _this->foobar                  = chip::DeviceProxySession(&exchangeMgr, sessionHandle);
         _this->mOperationalDeviceProxy = &_this->foobar;
         _this->mInitialized            = true;
-        ChipLogProgress(AppServer, "HandleDeviceConnected created an instance of OperationalDeviceProxy");
+        ChipLogProgress(AppServer, "HandleDeviceConnected created an instance of DeviceProxySession");
     }
 
     static void HandleDeviceConnectionFailure(void * context, chip::PeerId peerId, CHIP_ERROR error)

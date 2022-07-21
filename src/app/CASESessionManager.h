@@ -45,7 +45,7 @@ struct CASESessionManagerConfig
  * 4. During session establishment, trigger node ID resolution (if needed), and update the DNS-SD cache (if resolution is
  * successful)
  */
-class CASESessionManager
+class CASESessionManager : public OperationalReleaseDelegate
 {
 public:
     CASESessionManager() = default;
@@ -73,7 +73,7 @@ public:
 
     OperationalDeviceProxy * FindExistingSession(PeerId peerId) const;
 
-    void ReleaseSession(PeerId peerId);
+    void ReleaseSession(PeerId peerId) override;
 
     void ReleaseSessionsForFabric(FabricIndex fabricIndex);
 

@@ -70,7 +70,11 @@ struct DeviceProxyInitParams
     }
 };
 
-class OperationalDeviceProxy;
+class OperationalReleaseDelegate {
+public:
+    virtual ~OperationalReleaseDelegate() = default;
+    virtual void ReleaseSession(PeerId peerId) = 0;
+};
 
 /**
  * @brief Minimal implementation of DeviceProxy that encapsulates a SessionHolder to track a CASE session.
@@ -141,7 +145,7 @@ public:
     //
     // TODO: Should not be PeerId, but rather, ScopedNodeId
     //
-    OperationalDeviceProxy(DeviceProxyInitParams & params, PeerId peerId) : mSecureSession(*this)
+    OperationalDeviceProxy(DeviceProxyInitParams & params, PeerId peerId, OperationalReleaseDelegate * releaseDelegate) : mSecureSession(*this)
     {
         mInitParams = params;
         if (params.Validate() != CHIP_NO_ERROR)
@@ -161,6 +165,7 @@ public:
                 mFabricIndex = fabricInfo->GetFabricIndex();
             }
         }
+        mReleaseDelegate = releaseDelegate;
         mState = State::NeedsAddress;
         mAddressLookupHandle.SetListener(this);
     }
@@ -290,6 +295,8 @@ private:
 
     Callback::CallbackDeque mConnectionSuccess;
     Callback::CallbackDeque mConnectionFailure;
+
+    OperationalReleaseDelegate * mReleaseDelegate;
 
     /// This is used when a node address is required.
     chip::AddressResolve::NodeLookupHandle mAddressLookupHandle;

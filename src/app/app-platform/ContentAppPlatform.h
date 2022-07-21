@@ -124,11 +124,12 @@ public:
      *   Add ACLs on this device for the given client,
      *   and create bindings on the given client so that it knows what it has access to.
      *
-     * @param[in] targetDeviceProxy  OperationalDeviceProxy for the target device.
-     * @param[in] targetVendorId     Vendor ID for the target device.
-     * @param[in] localNodeId        The NodeId for the local device.
-     * @param[in] successCb          The function to be called on success of adding the binding.
-     * @param[in] failureCb          The function to be called on failure of adding the binding.
+     * @param[in] exchangeMgr     Exchange manager to be used to get an exchange context.
+     * @param[in] sessionHandle   Reference to an established session.
+     * @param[in] targetVendorId  Vendor ID for the target device.
+     * @param[in] localNodeId     The NodeId for the local device.
+     * @param[in] successCb       The function to be called on success of adding the binding.
+     * @param[in] failureCb       The function to be called on failure of adding the binding.
      *
      * @return CHIP_ERROR         CHIP_NO_ERROR on success, or corresponding error
      */

@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <app/CASESessionManager.h>
 #include <app/OperationalDeviceProxy.h>
 #include <lib/support/Pool.h>
 #include <transport/SessionHandle.h>
@@ -26,7 +27,7 @@ namespace chip {
 class OperationalDeviceProxyPoolDelegate
 {
 public:
-    virtual OperationalDeviceProxy * Allocate(DeviceProxyInitParams & params, PeerId peerId) = 0;
+    virtual OperationalDeviceProxy * Allocate(DeviceProxyInitParams & params, PeerId peerId, OperationalReleaseDelegate * releaseDelegate) = 0;
 
     virtual void Release(OperationalDeviceProxy * device) = 0;
 
@@ -45,9 +46,9 @@ class OperationalDeviceProxyPool : public OperationalDeviceProxyPoolDelegate
 public:
     ~OperationalDeviceProxyPool() override { mDevicePool.ReleaseAll(); }
 
-    OperationalDeviceProxy * Allocate(DeviceProxyInitParams & params, PeerId peerId) override
+    OperationalDeviceProxy * Allocate(DeviceProxyInitParams & params, PeerId peerId, OperationalReleaseDelegate * releaseDelegate) override
     {
-        return mDevicePool.CreateObject(params, peerId);
+        return mDevicePool.CreateObject(params, peerId, releaseDelegate);
     }
 
     void Release(OperationalDeviceProxy * device) override { mDevicePool.ReleaseObject(device); }

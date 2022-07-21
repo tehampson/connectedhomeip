@@ -155,6 +155,10 @@ void OperationalDeviceProxy::Connect(Callback::Callback<OnDeviceConnected> * onC
     if (err != CHIP_NO_ERROR || isConnected)
     {
         DequeueConnectionCallbacks(err);
+        // Do not touch this instance anymore; it might have been destroyed by a callback.
+        // While it is odd to have an explicit return here at the end of the function, we do so
+        // as a precaution in case someone later on adds something to the end of this function.
+        return;
     }
 }
 
@@ -191,6 +195,8 @@ void OperationalDeviceProxy::UpdateDeviceData(const Transport::PeerAddress & add
         if (err != CHIP_NO_ERROR)
         {
             DequeueConnectionCallbacks(err);
+            // Do not touch this instance anymore; it might have been destroyed by a callback.
+            return;
         }
     }
     else
@@ -253,6 +259,13 @@ void OperationalDeviceProxy::DequeueConnectionCallbacks(CHIP_ERROR error)
     mConnectionFailure.DequeueAll(failureReady);
     mConnectionSuccess.DequeueAll(successReady);
 
+    // TODO (#20452) For now we need to make a copy of member fields inside `this` before calling any of the
+    // callbacks since the callbacks themselves can potentially release `this` OperationalDeviceProxy.
+    auto * exchangeMgr = GetExchangeManager();
+    auto sessionHandle = mSecureSession.Get();
+    auto peerId = mPeerId;
+    auto * releaseDelegate = mReleaseDelegate;
+
     //
     // If we encountered no error, go ahead and call all success callbacks. Otherwise,
     // call the failure callbacks.
@@ -266,12 +279,10 @@ void OperationalDeviceProxy::DequeueConnectionCallbacks(CHIP_ERROR error)
 
         if (error != CHIP_NO_ERROR)
         {
-            cb->mCall(cb->mContext, mPeerId, error);
+            cb->mCall(cb->mContext, peerId, error);
         }
     }
 
-    auto * exchangeMgr = GetExchangeManager();
-    auto sessionHandle = mSecureSession.Get();
     while (successReady.mNext != &successReady)
     {
         Callback::Callback<OnDeviceConnected> * cb = Callback::Callback<OnDeviceConnected>::FromCancelable(successReady.mNext);
@@ -285,6 +296,8 @@ void OperationalDeviceProxy::DequeueConnectionCallbacks(CHIP_ERROR error)
             cb->mCall(cb->mContext, *exchangeMgr, sessionHandle.Value());
         }
     }
+
+    releaseDelegate->ReleaseSession(peerId);
 }
 
 void OperationalDeviceProxy::OnSessionEstablishmentError(CHIP_ERROR error)
@@ -300,7 +313,6 @@ void OperationalDeviceProxy::OnSessionEstablishmentError(CHIP_ERROR error)
     MoveToState(State::HasAddress);
 
     DequeueConnectionCallbacks(error);
-
     // Do not touch device instance anymore; it might have been destroyed by a failure callback.
 }
 
@@ -313,8 +325,8 @@ void OperationalDeviceProxy::OnSessionEstablished(const SessionHandle & session)
         return; // Got an invalid session, do not change any state
 
     MoveToState(State::SecureConnected);
-    DequeueConnectionCallbacks(CHIP_NO_ERROR);
 
+    DequeueConnectionCallbacks(CHIP_NO_ERROR);
     // Do not touch this instance anymore; it might have been destroyed by a callback.
 }
 
@@ -421,6 +433,7 @@ void OperationalDeviceProxy::OnNodeAddressResolutionFailed(const PeerId & peerId
     }
 
     DequeueConnectionCallbacks(reason);
+    // Do not touch this instance anymore; it might have been destroyed by a callback.
 }
 
 } // namespace chip
