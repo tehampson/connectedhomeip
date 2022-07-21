@@ -28,8 +28,12 @@ JNI_METHOD(jlong, FirstCluster, initWithDevice)(JNIEnv * env, jobject self, jlon
 {
     chip::DeviceLayer::StackLock lock;
     DeviceProxy * device = reinterpret_cast<DeviceProxy *>(devicePtr);
-    FirstCluster * cppCluster = new FirstCluster(*device->GetExchangeManager(), device->GetSecureSession().Value(), endpointId);
-    return reinterpret_cast<jlong>(cppCluster);
+    if (device->GetSecureSession().HasValue())
+    {
+        FirstCluster * cppCluster = new FirstCluster(*device->GetExchangeManager(), device->GetSecureSession().Value(), endpointId);
+        return reinterpret_cast<jlong>(cppCluster);
+    }
+    return reinterpret_cast<jlong>(nullptr);
 }
 
 JNI_METHOD(void, FirstCluster, subscribeSomeIntegerAttribute)(JNIEnv * env, jobject self, jlong clusterPtr, jobject callback, jint minInterval, jint maxInterval)

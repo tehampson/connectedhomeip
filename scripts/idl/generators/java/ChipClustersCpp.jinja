@@ -116,8 +116,8 @@ JNI_METHOD(jlong, {{cluster.name | capitalcase}}Cluster, initWithDevice)(JNIEnv 
     DeviceProxy * device = reinterpret_cast<DeviceProxy *>(devicePtr);
     if (device->GetSecureSession().HasValue())
     {
-      {{cluster.name |  capitalcase}}Cluster * cppCluster = new {{cluster.name | capitalcase}}Cluster(*device->GetExchangeManager(), device->GetSecureSession().Value(), endpointId);
-      return reinterpret_cast<jlong>(cppCluster);
+        {{cluster.name |  capitalcase}}Cluster * cppCluster = new {{cluster.name | capitalcase}}Cluster(*device->GetExchangeManager(), device->GetSecureSession().Value(), endpointId);
+        return reinterpret_cast<jlong>(cppCluster);
     }
     return reinterpret_cast<jlong>(nullptr);
 }
