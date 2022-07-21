@@ -93,16 +93,15 @@ static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, ch
         auto * exchangeMgr = device->GetExchangeManager();
         auto optionalSessionHandler = device->GetSecureSession();
         VerifyOrDie(exchangeMgr != nullptr && optionalSessionHandler.HasValue());
-        auto sessionHandle = optionalSessionHandler.Value();
         if (sSwitchOnOffState)
         {
             Clusters::OnOff::Commands::On::Type onCommand;
-            Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, binding.remote, onCommand, onSuccess, onFailure);
+            Controller::InvokeCommandRequest(exchangeMgr, optionalSessionHandler.Value(), binding.remote, onCommand, onSuccess, onFailure);
         }
         else
         {
             Clusters::OnOff::Commands::Off::Type offCommand;
-            Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, binding.remote, offCommand, onSuccess, onFailure);
+            Controller::InvokeCommandRequest(exchangeMgr, optionalSessionHandler.Value(), binding.remote, offCommand, onSuccess, onFailure);
         }
     }
 }

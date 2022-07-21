@@ -130,8 +130,7 @@ void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, DevicePro
             auto * exchangeMgr = device->GetExchangeManager();
             auto optionalSessionHandler = device->GetSecureSession();
             VerifyOrDie(exchangeMgr != nullptr && optionalSessionHandler.HasValue());
-            auto sessionHandle = optionalSessionHandler.Value()
-            ProcessOnOffUnicastBindingCommand(data->commandId, binding, exchangeMgr, sessionHandle);
+            ProcessOnOffUnicastBindingCommand(data->commandId, binding, exchangeMgr, optionalSessionHandler.Value());
             break;
         }
     }
