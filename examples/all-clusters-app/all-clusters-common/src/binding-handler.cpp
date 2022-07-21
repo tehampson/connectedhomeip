@@ -91,9 +91,9 @@ static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, ch
 
         VerifyOrDie(device != nullptr);
         auto * exchangeMgr = device->GetExchangeManager();
-        auto optionalSessionHandler = device->GetSecureSession()
+        auto optionalSessionHandler = device->GetSecureSession();
         VerifyOrDie(exchangeMgr != nullptr && optionalSessionHandler.HasValue());
-        auto sessionHandle = optionalSessionHandler.Value()
+        auto sessionHandle = optionalSessionHandler.Value();
         if (sSwitchOnOffState)
         {
             Clusters::OnOff::Commands::On::Type onCommand;

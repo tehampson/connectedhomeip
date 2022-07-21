@@ -126,9 +126,9 @@ void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, DevicePro
         case Clusters::OnOff::Id:
             VerifyOrDie(device != nullptr);
             auto * exchangeMgr = device->GetExchangeManager();
-            auto optionalSessionHandler = device->GetSecureSession()
+            auto optionalSessionHandler = device->GetSecureSession();
             VerifyOrDie(exchangeMgr != nullptr && optionalSessionHandler.HasValue());
-            auto sessionHandle = optionalSessionHandler.Value()
+            auto sessionHandle = optionalSessionHandler.Value();
             ProcessOnOffUnicastBindingCommand(data->commandId, binding, exchangeMgr, sessionHandle);
             break;
         }

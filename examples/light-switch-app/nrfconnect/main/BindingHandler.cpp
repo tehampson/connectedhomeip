@@ -100,7 +100,7 @@ void BindingHandler::OnOffProcessCommand(CommandId aCommandId, const EmberBindin
         // We are validating we can get exchange manager and session handle from device
         // before we blindly grab them for each InvokeCommandRequest below
         auto * exchangeMgr = device->GetExchangeManager();
-        auto optionalSessionHandler = device->GetSecureSession()
+        auto optionalSessionHandler = device->GetSecureSession();
         VerifyOrDie(exchangeMgr != nullptr && optionalSessionHandler.HasValue());
     }
 
@@ -183,7 +183,7 @@ void BindingHandler::LevelControlProcessCommand(CommandId aCommandId, const Embe
         // We are validating we can get exchange manager and session handle from device
         // before we blindly grab them for each InvokeCommandRequest below
         auto * exchangeMgr = device->GetExchangeManager();
-        auto optionalSessionHandler = device->GetSecureSession()
+        auto optionalSessionHandler = device->GetSecureSession();
         VerifyOrDie(exchangeMgr != nullptr && optionalSessionHandler.HasValue());
     }
 

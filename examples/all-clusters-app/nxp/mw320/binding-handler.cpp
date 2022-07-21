@@ -95,9 +95,9 @@ static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, ch
             Clusters::OnOff::Commands::Toggle::Type toggleCommand;
             VerifyOrDie(device != nullptr);
             auto * exchangeMgr = device->GetExchangeManager();
-            auto optionalSessionHandler = device->GetSecureSession()
+            auto optionalSessionHandler = device->GetSecureSession();
             VerifyOrDie(exchangeMgr != nullptr && optionalSessionHandler.HasValue());
-            auto sessionHandle = optionalSessionHandler.Value()
+            auto sessionHandle = optionalSessionHandler.Value();
             Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, binding.remote, toggleCommand, onSuccess, onFailure);
         }
     }
