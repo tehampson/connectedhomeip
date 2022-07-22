@@ -134,7 +134,7 @@ void CastingServer::ReadServerClustersForNode(NodeId nodeId)
 
 void CastingServer::ReadServerClusters(EndpointId endpointId)
 {
-    DeviceProxySession * deviceProxy = mTargetVideoPlayerInfo.GetDeviceProxy();
+    const DeviceProxySession * deviceProxy = mTargetVideoPlayerInfo.GetDeviceProxy();
     if (deviceProxy == nullptr)
     {
         ChipLogError(AppServer, "Failed in getting an instance of DeviceProxy");
@@ -182,7 +182,7 @@ void CastingServer::OnDescriptorReadFailureResponse(void * context, CHIP_ERROR e
 CHIP_ERROR CastingServer::ContentLauncherLaunchURL(const char * contentUrl, const char * contentDisplayStr,
                                                    std::function<void(CHIP_ERROR)> launchURLResponseCallback)
 {
-    DeviceProxySession * deviceProxy = mTargetVideoPlayerInfo.GetDeviceProxy();
+    const DeviceProxySession * deviceProxy = mTargetVideoPlayerInfo.GetDeviceProxy();
     if (deviceProxy == nullptr)
     {
         ChipLogError(AppServer, "Failed in getting an instance of DeviceProxy");

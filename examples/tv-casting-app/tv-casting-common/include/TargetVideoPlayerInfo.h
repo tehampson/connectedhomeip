@@ -32,9 +32,9 @@ public:
     bool IsInitialized() { return mInitialized; }
     chip::NodeId GetNodeId() const { return mNodeId; }
     chip::FabricIndex GetFabricIndex() const { return mFabricIndex; }
-    chip::DeviceProxySession * GetDeviceProxy() const
+    const chip::DeviceProxySession * GetDeviceProxy() const
     {
-        if mDeviceProxy.ConnectionReady()
+        if (mDeviceProxy.ConnectionReady())
         {
             return &mDeviceProxy;
         }
@@ -59,7 +59,7 @@ private:
     static void HandleDeviceConnectionFailure(void * context, chip::PeerId peerId, CHIP_ERROR error)
     {
         TargetVideoPlayerInfo * _this  = static_cast<TargetVideoPlayerInfo *>(context);
-        _this->mDeviceProxy = DeviceProxySession();
+        _this->mDeviceProxy = chip::DeviceProxySession();
     }
 
     static constexpr size_t kMaxNumberOfEndpoints = 5;
