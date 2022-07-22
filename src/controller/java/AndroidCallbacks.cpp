@@ -84,7 +84,7 @@ void GetConnectedDeviceCallback::OnDeviceConnectedFn(void * context, Messaging::
     // connected callback lives only in the cpp side and we use the SessionHandle immediately for what we intend.
     //
     // TODO I don't think we can actually do new here, figure out the proper way to alloc this.
-    DeviceProxySession * device = new DeviceProxySession(exchangeMgr, sessionHandle);
+    DeviceProxySession * device = new DeviceProxySession(&exchangeMgr, sessionHandle);
     DeviceLayer::StackUnlock unlock;
     env->CallVoidMethod(javaCallback, successMethod, reinterpret_cast<jlong>(device));
 }
