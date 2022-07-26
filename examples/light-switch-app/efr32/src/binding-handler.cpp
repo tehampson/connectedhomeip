@@ -105,7 +105,7 @@ void ProcessOnOffGroupBindingCommand(CommandId commandId, const EmberBindingTabl
     }
 }
 
-void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, OperationalDeviceProxy * device, void * context)
+void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, OperationalDeviceProxy * peer_device, void * context)
 {
     VerifyOrReturn(context != nullptr, ChipLogError(NotSpecified, "OnDeviceConnectedFn: context is null"));
     BindingCommandData * data = static_cast<BindingCommandData *>(context);
@@ -124,11 +124,9 @@ void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, Operation
         switch (data->clusterId)
         {
         case Clusters::OnOff::Id:
-            VerifyOrDie(device != nullptr);
-            auto * exchangeMgr         = device->GetExchangeManager();
-            auto optionalSessionHandle = device->GetSecureSession();
-            VerifyOrDie(exchangeMgr != nullptr && optionalSessionHandle.HasValue());
-            ProcessOnOffUnicastBindingCommand(data->commandId, binding, exchangeMgr, optionalSessionHandle.Value());
+            VerifyOrDie(peer_device != nullptr && peer_device->ConnectionReady());
+            ProcessOnOffUnicastBindingCommand(data->commandId, binding, peer_device->GetExchangeManager(),
+                                              peer_device->GetSecureSession().Value());
             break;
         }
     }

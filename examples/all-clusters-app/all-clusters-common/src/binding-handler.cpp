@@ -67,7 +67,8 @@ static void RegisterSwitchCommands()
 }
 #endif // defined(ENABLE_CHIP_SHELL)
 
-static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, chip::OperationalDeviceProxy * device, void * context)
+static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, chip::OperationalDeviceProxy * peer_device,
+                                      void * context)
 {
     using namespace chip;
     using namespace chip::app;
@@ -88,21 +89,18 @@ static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, ch
             ChipLogError(NotSpecified, "OnOff command failed: %" CHIP_ERROR_FORMAT, error.Format());
         };
 
-        VerifyOrDie(device != nullptr);
-        auto * exchangeMgr         = device->GetExchangeManager();
-        auto optionalSessionHandle = device->GetSecureSession();
-        VerifyOrDie(exchangeMgr != nullptr && optionalSessionHandle.HasValue());
+        VerifyOrDie(peer_device != nullptr && peer_device->ConnectionReady());
         if (sSwitchOnOffState)
         {
             Clusters::OnOff::Commands::On::Type onCommand;
-            Controller::InvokeCommandRequest(exchangeMgr, optionalSessionHandle.Value(), binding.remote, onCommand, onSuccess,
-                                             onFailure);
+            Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                             binding.remote, onCommand, onSuccess, onFailure);
         }
         else
         {
             Clusters::OnOff::Commands::Off::Type offCommand;
-            Controller::InvokeCommandRequest(exchangeMgr, optionalSessionHandle.Value(), binding.remote, offCommand, onSuccess,
-                                             onFailure);
+            Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                             binding.remote, offCommand, onSuccess, onFailure);
         }
     }
 }
