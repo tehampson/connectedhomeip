@@ -1573,10 +1573,6 @@ void DeviceCommissioner::CommissioningStageComplete(CHIP_ERROR err, Commissionin
     }
 }
 
-// TODO this global variable is a hack right now, need to figure out what the lifetime of this DeviceProxy is used
-// for and maintain this value appropriatly.
-OperationalDeviceProxy foobar;
-
 void DeviceCommissioner::OnDeviceConnectedFn(void * context, Messaging::ExchangeManager & exchangeMgr,
                                              SessionHandle & sessionHandle)
 {
@@ -1600,9 +1596,8 @@ void DeviceCommissioner::OnDeviceConnectedFn(void * context, Messaging::Exchange
 
     if (commissioner->mCommissioningDelegate != nullptr)
     {
-        foobar = OperationalDeviceProxy(&exchangeMgr, sessionHandle);
         CommissioningDelegate::CommissioningReport report;
-        report.Set<OperationalNodeFoundData>(OperationalNodeFoundData(&foobar));
+        report.Set<OperationalNodeFoundData>(OperationalNodeFoundData(OperationalDeviceProxy(&exchangeMgr, sessionHandle)));
         commissioner->CommissioningStageComplete(CHIP_NO_ERROR, report);
     }
 }

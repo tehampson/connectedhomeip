@@ -155,7 +155,7 @@ void OperationalSessionSetup::Connect(Callback::Callback<OnDeviceConnected> * on
     if (err != CHIP_NO_ERROR || isConnected)
     {
         DequeueConnectionCallbacks(err);
-        // Do not touch this instance anymore; it might have been destroyed by a callback.
+        // Do not touch `this` instance anymore; it has been destroyed in DequeueConnectionCallbacks.
         // While it is odd to have an explicit return here at the end of the function, we do so
         // as a precaution in case someone later on adds something to the end of this function.
         return;
@@ -196,7 +196,7 @@ void OperationalSessionSetup::UpdateDeviceData(const Transport::PeerAddress & ad
         if (err != CHIP_NO_ERROR)
         {
             DequeueConnectionCallbacks(err);
-            // Do not touch this instance anymore; it might have been destroyed by a callback.
+            // Do not touch `this` instance anymore; it has been destroyed in DequeueConnectionCallbacks.
             return;
         }
     }
@@ -294,7 +294,6 @@ void OperationalSessionSetup::DequeueConnectionCallbacks(CHIP_ERROR error)
         {
             // We know that we for sure have the SessionHandler in the successful case.
             VerifyOrDie(exchangeMgr);
-            VerifyOrDie(sessionHandle.HasValue());
             cb->mCall(cb->mContext, *exchangeMgr, sessionHandle.Value());
         }
     }
@@ -315,7 +314,7 @@ void OperationalSessionSetup::OnSessionEstablishmentError(CHIP_ERROR error)
     MoveToState(State::HasAddress);
 
     DequeueConnectionCallbacks(error);
-    // Do not touch device instance anymore; it might have been destroyed by a failure callback.
+    // Do not touch `this` instance anymore; it has been destroyed in DequeueConnectionCallbacks.
 }
 
 void OperationalSessionSetup::OnSessionEstablished(const SessionHandle & session)
@@ -329,7 +328,7 @@ void OperationalSessionSetup::OnSessionEstablished(const SessionHandle & session
     MoveToState(State::SecureConnected);
 
     DequeueConnectionCallbacks(CHIP_NO_ERROR);
-    // Do not touch this instance anymore; it might have been destroyed by a callback.
+    // Do not touch `this` instance anymore; it has been destroyed in DequeueConnectionCallbacks.
 }
 
 void OperationalSessionSetup::Disconnect()
@@ -441,7 +440,7 @@ void OperationalSessionSetup::OnNodeAddressResolutionFailed(const PeerId & peerI
     }
 
     DequeueConnectionCallbacks(reason);
-    // Do not touch this instance anymore; it might have been destroyed by a callback.
+    // Do not touch `this` instance anymore; it has been destroyed in DequeueConnectionCallbacks.
 }
 
 } // namespace chip

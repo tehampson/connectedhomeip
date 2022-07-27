@@ -70,10 +70,10 @@ struct DeviceProxyInitParams
     }
 };
 
-class OperationalReleaseDelegate
+class OperationalSessionReleaseDelegate
 {
 public:
-    virtual ~OperationalReleaseDelegate()                    = default;
+    virtual ~OperationalSessionReleaseDelegate()             = default;
     virtual void ReleaseSession(const ScopedNodeId & peerId) = 0;
 };
 
@@ -151,7 +151,8 @@ class DLL_EXPORT OperationalSessionSetup : public SessionDelegate,
 public:
     ~OperationalSessionSetup() override;
 
-    OperationalSessionSetup(DeviceProxyInitParams & params, ScopedNodeId peerId, OperationalReleaseDelegate * releaseDelegate) :
+    OperationalSessionSetup(DeviceProxyInitParams & params, ScopedNodeId peerId,
+                            OperationalSessionReleaseDelegate * releaseDelegate) :
         mSecureSession(*this)
     {
         mInitParams = params;
@@ -286,7 +287,7 @@ private:
     Callback::CallbackDeque mConnectionSuccess;
     Callback::CallbackDeque mConnectionFailure;
 
-    OperationalReleaseDelegate * mReleaseDelegate;
+    OperationalSessionReleaseDelegate * mReleaseDelegate;
 
     /// This is used when a node address is required.
     chip::AddressResolve::NodeLookupHandle mAddressLookupHandle;

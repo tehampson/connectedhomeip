@@ -45,7 +45,7 @@ struct CASESessionManagerConfig
  * 4. During session establishment, trigger node ID resolution (if needed), and update the DNS-SD cache (if resolution is
  * successful)
  */
-class CASESessionManager : public OperationalReleaseDelegate
+class CASESessionManager : public OperationalSessionReleaseDelegate
 {
 public:
     CASESessionManager() = default;

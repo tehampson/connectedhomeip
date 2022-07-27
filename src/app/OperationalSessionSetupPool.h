@@ -28,7 +28,7 @@ class OperationalSessionSetupPoolDelegate
 {
 public:
     virtual OperationalSessionSetup * Allocate(DeviceProxyInitParams & params, ScopedNodeId peerId,
-                                               OperationalReleaseDelegate * releaseDelegate) = 0;
+                                               OperationalSessionReleaseDelegate * releaseDelegate) = 0;
 
     virtual void Release(OperationalSessionSetup * device) = 0;
 
@@ -48,7 +48,7 @@ public:
     ~OperationalSessionSetupPool() override { mDevicePool.ReleaseAll(); }
 
     OperationalSessionSetup * Allocate(DeviceProxyInitParams & params, ScopedNodeId peerId,
-                                       OperationalReleaseDelegate * releaseDelegate) override
+                                       OperationalSessionReleaseDelegate * releaseDelegate) override
     {
         return mDevicePool.CreateObject(params, peerId, releaseDelegate);
     }

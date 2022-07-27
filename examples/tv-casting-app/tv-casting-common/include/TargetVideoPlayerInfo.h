@@ -32,7 +32,7 @@ public:
     bool IsInitialized() { return mInitialized; }
     chip::NodeId GetNodeId() const { return mNodeId; }
     chip::FabricIndex GetFabricIndex() const { return mFabricIndex; }
-    const chip::OperationalDeviceProxy * GetDeviceProxy() const
+    const chip::OperationalDeviceProxy * GetOperationalDeviceProxy() const
     {
         if (mDeviceProxy.ConnectionReady())
         {

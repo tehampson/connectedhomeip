@@ -83,8 +83,6 @@ void GetConnectedDeviceCallback::OnDeviceConnectedFn(void * context, Messaging::
     // TODO (#) This is a memory leak since as of today this is never freed. Either we need to make sure this is free
     // after the java side is done with this pointer, or we need to refactor how this is used so that the the on
     // connected callback lives only in the cpp side and we use the SessionHandle immediately for what we intend.
-    //
-    // TODO I don't think we can actually do new here, figure out the proper way to alloc this.
     OperationalDeviceProxy * device = new OperationalDeviceProxy(&exchangeMgr, sessionHandle);
     DeviceLayer::StackUnlock unlock;
     env->CallVoidMethod(javaCallback, successMethod, reinterpret_cast<jlong>(device));

@@ -186,6 +186,7 @@ void pychip_Stack_SetLogFunct(LogMessageFunct logFunct);
 
 ChipError::StorageType pychip_GetConnectedDeviceByNodeId(chip::Controller::DeviceCommissioner * devCtrl, chip::NodeId nodeId,
                                                          DeviceAvailableFunc callback);
+ChipError::StorageType pychip_FreeOperationalDeviceProxy(chip::OperationalDeviceProxy * deviceProxy);
 ChipError::StorageType pychip_GetDeviceBeingCommissioned(chip::Controller::DeviceCommissioner * devCtrl, chip::NodeId nodeId,
                                                          CommissioneeDeviceProxy ** proxy);
 ChipError::StorageType pychip_ExpireSessions(chip::Controller::DeviceCommissioner * devCtrl, chip::NodeId nodeId);
@@ -606,10 +607,6 @@ const char * pychip_Stack_StatusReportToString(uint32_t profileId, uint16_t stat
 
 namespace {
 
-// TODO This is a hack right now. I will need to figure out where this should
-// actually live, the lifetime of it and be sure it is cleaned up properly.
-OperationalDeviceProxy foobar;
-
 struct GetDeviceCallbacks
 {
     GetDeviceCallbacks(DeviceAvailableFunc callback) :
@@ -619,9 +616,8 @@ struct GetDeviceCallbacks
     static void OnDeviceConnectedFn(void * context, Messaging::ExchangeManager & exchangeMgr, SessionHandle & sessionHandle)
     {
         auto * self = static_cast<GetDeviceCallbacks *>(context);
-        foobar      = OperationalDeviceProxy(&exchangeMgr, sessionHandle);
-        // TODO TMsg: this is a hack, this makes it so that we cannot perform parallel task.
-        self->mCallback(&foobar, CHIP_NO_ERROR.AsInteger());
+        auto * operationalDeviceProxy = new OperationalDeviceProxy(&exchangeMgr, sessionHandle);
+        self->mCallback(operationalDeviceProxy, CHIP_NO_ERROR.AsInteger());
         delete self;
     }
 
@@ -644,6 +640,15 @@ ChipError::StorageType pychip_GetConnectedDeviceByNodeId(chip::Controller::Devic
     VerifyOrReturnError(devCtrl != nullptr, CHIP_ERROR_INVALID_ARGUMENT.AsInteger());
     auto * callbacks = new GetDeviceCallbacks(callback);
     return devCtrl->GetConnectedDevice(nodeId, &callbacks->mOnSuccess, &callbacks->mOnFailure).AsInteger();
+}
+
+ChipError::StorageType pychip_FreeOperationalDeviceProxy(chip::OperationalDeviceProxy * deviceProxy)
+{
+    if (deviceProxy != nullptr)
+    {
+        delete deviceProxy;
+    }
+    return CHIP_NO_ERROR.AsInteger();
 }
 
 ChipError::StorageType pychip_GetDeviceBeingCommissioned(chip::Controller::DeviceCommissioner * devCtrl, chip::NodeId nodeId,

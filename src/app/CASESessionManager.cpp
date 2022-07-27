@@ -72,12 +72,6 @@ void CASESessionManager::ReleaseAllSessions()
 CHIP_ERROR CASESessionManager::GetPeerAddress(const ScopedNodeId & peerId, Transport::PeerAddress & addr)
 {
     ReturnErrorOnFailure(mConfig.sessionInitParams.Validate());
-#if 0
-    auto fabricInfo = mConfig.sessionInitParams.fabricTable->FindFabricWithCompressedId(peerId.GetCompressedFabricId());
-    ReturnErrorCodeIf(fabricInfo == nullptr, CHIP_ERROR_NOT_CONNECTED);
-    ScopedNodeId peerNodeId = fabricInfo->GetScopedNodeIdForNode(peerId.GetNodeId());
-#endif
-
     auto sessionHandle = mConfig.sessionInitParams.sessionManager->FindSecureSessionForNode(
         peerId, MakeOptional(Transport::SecureSession::Type::kCASE));
     ReturnErrorCodeIf(!sessionHandle.HasValue(), CHIP_ERROR_NOT_CONNECTED);

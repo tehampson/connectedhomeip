@@ -207,7 +207,6 @@ private:
 
     ScopedNodeId GetProviderScopedId() const
     {
-        VerifyOrDie(mProviderLocation.HasValue());
         return ScopedNodeId(mProviderLocation.Value().providerNodeID, mProviderLocation.Value().fabricIndex);
     }
 

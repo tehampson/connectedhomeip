@@ -30,7 +30,7 @@ public:
 
     CHIP_ERROR SetTarget(TargetVideoPlayerInfo & targetVideoPlayerInfo, chip::EndpointId tvEndpoint)
     {
-        auto deviceProxy = targetVideoPlayerInfo.GetDeviceProxy();
+        auto deviceProxy = targetVideoPlayerInfo.GetOperationalDeviceProxy();
         if (deviceProxy == nullptr)
         {
             ChipLogError(AppServer, "Failed in getting an instance of OperationalDeviceProxy");
@@ -45,7 +45,7 @@ public:
     {
         VerifyOrDieWithMsg(mTargetVideoPlayerInfo != nullptr, AppServer, "Target unknown");
 
-        auto deviceProxy = mTargetVideoPlayerInfo->GetDeviceProxy();
+        auto deviceProxy = mTargetVideoPlayerInfo->GetOperationalDeviceProxy();
         ReturnErrorCodeIf(deviceProxy == nullptr || !deviceProxy->ConnectionReady(), CHIP_ERROR_PEER_NODE_NOT_FOUND);
 
         sResponseCallback = responseCallback;
