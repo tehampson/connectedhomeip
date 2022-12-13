@@ -79,6 +79,7 @@ pw_python_package("idl") {
     "generators/filters.py",
     "generators/java/__init__.py",
     "generators/types.py",
+    "lint/__init__.py",
     "matter_idl_parser.py",
     "matter_idl_types.py",
     "xml_parser.py",

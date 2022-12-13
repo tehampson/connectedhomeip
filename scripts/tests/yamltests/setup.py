@@ -22,7 +22,7 @@ setuptools.setup(
     version='0.0.1',
     author='Project CHIP Authors',
     description='Parse matter yaml test files',
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages()
     package_data={'yamltest': ['py.typed']},
     zip_safe=False,
 )

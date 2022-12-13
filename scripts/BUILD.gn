@@ -13,5 +13,15 @@
 # limitations under the License.
 
 import("//build_overrides/pigweed.gni")
+import("$dir_pw_build/python_dist.gni")
 
-import("$dir_pw_build/python.gni")
+pw_python_distribution("yamltests_distribution") {
+  packages = [
+    "idl:idl",
+    "tests/yamltests:yamltests",
+  ]
+  generate_setup_cfg = {
+    common_config_file = "common_setup.cfg"
+    append_date_to_version = true
+  }
+}

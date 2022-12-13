@@ -22,7 +22,7 @@ setuptools.setup(
     version='0.0.1',
     author='Project CHIP Authors',
     description='Parse matter idl files',
-    packages=setuptools.find_packages(),
+    packages=['idl', 'idl.generators', 'idl.lint', 'idl.zapxml'],
     package_data={'idl': ['py.typed']},
     zip_safe=False,
 )
