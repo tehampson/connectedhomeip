@@ -205,7 +205,10 @@ if (current_toolchain != "${dir_pw_toolchain}/default:default") {
         if (enable_pylib) {
           deps += [ "${chip_root}/src/pybindings/pycontroller" ]
         }
-        deps += [ "${chip_root}/src/controller/python:chip-repl" ]
+        deps += [
+          "${chip_root}/src/controller/python:chip-repl",
+          "${chip_root}/scripts/tests/yamltests:yamltests",
+        ]
       }
     }
 
