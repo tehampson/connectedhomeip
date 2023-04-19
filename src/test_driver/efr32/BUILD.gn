@@ -112,7 +112,10 @@ silabs_executable("efr32_device_tests") {
 
   inputs = [ ldscript ]
 
-  ldflags = [ "-T" + rebase_path(ldscript, root_build_dir) ]
+  ldflags = [
+    "-T" + rebase_path(ldscript, root_build_dir),
+    "-Wl,--no-warn-rwx-segment",
+  ]
 
   output_dir = root_out_dir
 }
