@@ -312,6 +312,7 @@ void PtrSrvTxtMultipleRespondersToInstance(nlTestSuite * inSuite, void * inConte
 
 void PtrSrvTxtMultipleRespondersToServiceListing(nlTestSuite * inSuite, void * inContext)
 {
+    // TODO ask jmartinez-silabs if we should remove this and ask why this change was made to be a pointer.
     // CommonTestElements common1(inSuite, "test1");
     // CommonTestElements common2(inSuite, "test2");
     auto common1 = new CommonTestElements(inSuite, "test1");
