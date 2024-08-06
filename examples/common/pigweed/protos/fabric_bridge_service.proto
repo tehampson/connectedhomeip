@@ -7,10 +7,10 @@ package chip.rpc;
 // Define the message for a synchronized end device with necessary fields
 message SynchronizedDevice {
   uint64 node_id = 1;
+  // TODO add optional data that contains all the Bridged Device Basic Information that should be reported.
 }
 
 service FabricBridge {
   rpc AddSynchronizedDevice(SynchronizedDevice) returns (pw.protobuf.Empty){}
   rpc RemoveSynchronizedDevice(SynchronizedDevice) returns (pw.protobuf.Empty){}  
 }
-

@@ -49,6 +49,7 @@ public:
 pw::Status FabricBridge::AddSynchronizedDevice(const chip_rpc_SynchronizedDevice & request, pw_protobuf_Empty & response)
 {
     NodeId nodeId = request.node_id;
+    // Here is where we can start pulling the data passed in
     ChipLogProgress(NotSpecified, "Received AddSynchronizedDevice: " ChipLogFormatX64, ChipLogValueX64(nodeId));
 
     BridgedDevice * device = new BridgedDevice(nodeId);

@@ -113,6 +113,7 @@ CHIP_ERROR InitRpcClient(uint16_t rpcServerPort)
     return rpc::client::StartPacketProcessing();
 }
 
+// Another Parameter here can be added for all the data bridge device needed to properly start reporting on it
 CHIP_ERROR AddSynchronizedDevice(chip::NodeId nodeId)
 {
     ChipLogProgress(NotSpecified, "AddSynchronizedDevice");

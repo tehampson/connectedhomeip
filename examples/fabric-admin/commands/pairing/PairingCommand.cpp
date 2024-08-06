@@ -19,6 +19,7 @@
 #include "PairingCommand.h"
 
 #include <commands/common/DeviceScanner.h>
+#include <commands/interactive/InteractiveCommands.h>
 #include <controller/ExampleOperationalCredentialsIssuer.h>
 #include <crypto/CHIPCryptoPAL.h>
 #include <lib/core/CHIPSafeCasts.h>
@@ -36,6 +37,20 @@
 
 using namespace ::chip;
 using namespace ::chip::Controller;
+
+#if defined(PW_RPC_ENABLED)
+// TODO this is 100% a hack that needs to be fixed before uploading
+static ::chip::NodeId gNodeId;
+static void ReadBasicInformation(intptr_t commandArg)
+{
+    char command[64];
+    // TODO might be able to pull this from codegen
+    const chip::ClusterId basicInformationCluster = 0x28;
+    const chip::EndpointId rootEndpoint = 0;
+    snprintf(command, sizeof(command), "any read-by-id %d 0xFFFFFFFF %ld %d", basicInformationCluster, gNodeId, rootEndpoint);
+    PushCommand(command);
+}
+#endif
 
 CHIP_ERROR PairingCommand::RunCommand()
 {
@@ -402,8 +417,10 @@ void PairingCommand::OnCommissioningComplete(NodeId nodeId, CHIP_ERROR err)
         fprintf(stderr, "New device with Node ID: 0x%lx has been successfully added.\n", nodeId);
 
 #if defined(PW_RPC_ENABLED)
-        AddSynchronizedDevice(nodeId);
-#endif
+        gNodeId = nodeId;
+        chip::DeviceLayer::PlatformMgr().ScheduleWork(ReadBasicInformation, reinterpret_cast<intptr_t>(nullptr));
+        //AddSynchronizedDevice(nodeId);
+#endif  // if defined(PW_RPC_ENABLED)
     }
     else
     {

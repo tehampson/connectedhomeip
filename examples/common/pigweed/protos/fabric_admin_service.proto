@@ -21,4 +21,5 @@ message OperationStatus {
 
 service FabricAdmin {
   rpc OpenCommissioningWindow(DeviceCommissioningWindowInfo) returns (OperationStatus){}
+  // If we wanted to poll for the data we can do that here, but likely better to push data from fabric-admin to fabric-bridge.
 }

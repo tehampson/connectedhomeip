@@ -43,6 +43,7 @@ Protocols::InteractionModel::Status emberAfExternalAttributeReadCallback(Endpoin
         ChipLogProgress(NotSpecified, "HandleReadBridgedDeviceBasicAttribute: attrId=%d, maxReadLength=%d", attributeId,
                         maxReadLength);
 
+        // Add to this if block for all the different Attributes we are supposed to be reporting.
         if ((attributeId == Reachable::Id) && (maxReadLength == 1))
         {
             *buffer = dev->IsReachable() ? 1 : 0;

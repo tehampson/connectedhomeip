@@ -46,6 +46,13 @@ void ReportCommand::OnAttributeData(const app::ConcreteDataAttributePath & path,
 
     LogErrorOnFailure(RemoteDataModelLogger::LogAttributeAsJSON(path, data));
 
+#if defined(PW_RPC_ENABLED)
+    // Maybe there is a better spot to intercept the data, maybe in
+    // DeviceMgr().HandleAttributeChange itself. Whereever we intercept the wildcard read,
+    // we should then make sure to only call `AddSynchronizedDevice` when we have all the
+    // required data from the newly added device.
+#endif
+
     DeviceMgr().HandleAttributeChange(path, data);
 }
 
