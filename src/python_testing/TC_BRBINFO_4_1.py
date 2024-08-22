@@ -30,6 +30,7 @@ import uuid
 
 import chip.clusters as Clusters
 from chip import ChipDeviceCtrl
+from chip.interaction_model import InteractionModelError, Status
 from matter_testing_support import MatterBaseTest, SimpleEventCallback, TestStep, async_test_body, default_matter_test_main
 from mobly import asserts
 
@@ -57,14 +58,25 @@ class TC_BRBINFO_4_1(MatterBaseTest):
 
     def steps_TC_BRBINFO_4_1(self) -> list[TestStep]:
         steps = [
-            TestStep("0",  "DUT commissioned", is_commissioning=True),
-            TestStep("0a", "Preconditions"),
-            TestStep("1a", "TH reads from the ICD the A_IDLE_MODE_DURATION, A_ACTIVE_MODE_DURATION, and ACTIVE_MODE_THRESHOLD attributes"),
-            TestStep("1b", "Simple KeepActive command w/ subscription. ActiveChanged event received by TH contains PromisedActiveDuration"),
-            TestStep("2", "Sends 3x KeepActive commands w/ subscription. ActiveChanged event received ONCE and contains PromisedActiveDuration"),
-            TestStep("3", "TH waits for check-in from TH_ICD to confirm no additional ActiveChanged events are recieved"),
-            TestStep("4", "KeepActive not returned after 60 minutes of offline ICD"),
-        ]
+            TestStep("0",  "DUT commissioned and preconditions", is_commissioning=True),
+            TestStep("1", "TH reads from the ICD the A_IDLE_MODE_DURATION, A_ACTIVE_MODE_DURATION, and ACTIVE_MODE_THRESHOLD attributes"),
+            TestStep("2", "Setting up subscribe to ActiveChange event"),
+            TestStep("3", "Check TimeoutMs too low fails"),
+            TestStep("4", "Check TimeoutMs too high fails"),
+            TestStep("5", "Check KeepActive successful with valid command parameters lowest possible TimeoutMs"),
+            TestStep("6", "Validate previous command results in ActiveChanged event shortly after ICD device checks-in"),
+            TestStep("7", "Check KeepActive successful with valid command parameters highest possible TimeoutMs"),
+            TestStep("8", "Validate previous command results in ActiveChanged event shortly after ICD device checks-in"),
+            TestStep("9", "Send multiple KeepActive commands during window where ICD device will not check in"),
+            TestStep("10", "Validate previous command results in single ActiveChanged event shortly after ICD device checks-in"),
+            TestStep("11", "Validate we recieved no additional ActiveChanged event after subsequent ICD check in"),
+            TestStep("12", "Send KeepActive command with shortest TimeoutMs value while TH_ICD device off"),
+            TestStep("13", "Turn on TH_ICD device after timeout should have expired"),
+            TestStep("14", "Wait for TH_ICD to check into TH twice, then confirm we have had no new ActiveChanged events reported from DUT"),
+            TestStep("15", "Send KeepActive command with shortest TimeoutMs value while TH_ICD device off"),
+            TestStep("16", "Wait 15 seconds then send second KeepActive command with double the TimeoutMs value of the previous step"),
+            TestStep("17", "Turn on TH_ICD device after timeout from step 15 expired but before second timeout from step 16 still valid"),
+            TestStep("18", "Wait for TH_ICD to check into TH, then confirm we have recieved new event from DUT")]
         return steps
 
     def _ask_for_vendor_commissioniong_ux_operation(self, discriminator, setupPinCode, setupManualCode, setupQRCode):
@@ -189,10 +201,6 @@ class TC_BRBINFO_4_1(MatterBaseTest):
         logging.info(f"Dynamic endpoint is {dynamic_endpoint_id}")
 
         self.step("0")
-
-        # Preconditions
-        self.step("0a")
-
         logging.info("Ensuring DUT is commissioned to TH")
 
         # Confirms commissioning of DUT on TH as it reads its fature map
@@ -205,15 +213,7 @@ class TC_BRBINFO_4_1(MatterBaseTest):
 
         logging.info("Ensuring ICD is commissioned to TH")
 
-        # Confirms commissioning of ICD on TH as it reads its feature map
-        await self._read_attribute_expect_success(
-            _ROOT_ENDPOINT_ID,
-            basic_info_cluster,
-            basic_info_attributes.FeatureMap,
-            self.icd_nodeid
-        )
-
-        self.step("1a")
+        self.step("1")
 
         idle_mode_duration_s = await self._read_attribute_expect_success(
             _ROOT_ENDPOINT_ID,
@@ -231,9 +231,7 @@ class TC_BRBINFO_4_1(MatterBaseTest):
         )
         logging.info(f"ActiveModeDurationMs: {active_mode_duration_ms}")
 
-        self.step("1b")
-
-        # Subscription to ActiveChanged
+        self.step("2")
         event = brb_info_cluster.Events.ActiveChanged
         self.q = queue.Queue()
         urgent = 1
@@ -241,9 +239,23 @@ class TC_BRBINFO_4_1(MatterBaseTest):
         subscription = await self.default_controller.ReadEvent(nodeid=self.dut_node_id, events=[(dynamic_endpoint_id, event, urgent)], reportInterval=[1, 3])
         subscription.SetEventUpdateCallback(callback=cb)
 
+        self.step("3")
         stay_active_duration_ms = 1000
+        timeout_ms = 29999
+        try:
+            keep_active = await self.default_controller.SendCommand(nodeid=self.dut_node_id, endpoint=endpoint_id, payload=Clusters.Objects.BridgedDeviceBasicInformation.Commands.KeepActive(stayActiveDuration=duration))
+            breakpoint()
+            breakpoint()
+            asserts.fail("KeepActive with invalid TimeoutMs was expected to fail")
+        except InteractionModelError as e:
+            breakpoint()
+            breakpoint()
+            asserts.assert_equal(e.status, Status.ConstraintError, "DUT sent back an unexpected error, we were expecting ConstraintError")
+
+        stay_active_duration_ms = 1000
+        timeout_ms = 29999
         logging.info(f"Sending KeepActiveCommand({stay_active_duration_ms}ms)")
-        await self._send_keep_active_command(stay_active_duration_ms, dynamic_endpoint_id)
+        await self._send_keep_active_command(stay_active_duration_ms, timeout_ms, dynamic_endpoint_id)
 
         logging.info("Waiting for ActiveChanged from DUT...")
         timeout_s = idle_mode_duration_s + max(active_mode_duration_ms, stay_active_duration_ms)/1000
@@ -259,11 +271,11 @@ class TC_BRBINFO_4_1(MatterBaseTest):
         # sends 3x keep active commands
         stay_active_duration_ms = 2000
         logging.info(f"Sending first KeepActiveCommand({stay_active_duration_ms})")
-        await self._send_keep_active_command(stay_active_duration_ms, dynamic_endpoint_id)
+        await self._send_keep_active_command(stay_active_duration_ms, timeout_ms, dynamic_endpoint_id)
         logging.info(f"Sending second KeepActiveCommand({stay_active_duration_ms})")
-        await self._send_keep_active_command(stay_active_duration_ms, dynamic_endpoint_id)
+        await self._send_keep_active_command(stay_active_duration_ms, timeout_ms, dynamic_endpoint_id)
         logging.info(f"Sending third KeepActiveCommand({stay_active_duration_ms})")
-        await self._send_keep_active_command(stay_active_duration_ms, dynamic_endpoint_id)
+        await self._send_keep_active_command(stay_active_duration_ms, timeout_ms, dynamic_endpoint_id)
         self.resume_th_icd_server(check_state=True)
 
         logging.info("Waiting for ActiveChanged from DUT...")
@@ -280,7 +292,7 @@ class TC_BRBINFO_4_1(MatterBaseTest):
         await self.default_controller.WaitForActive(self.icd_nodeid, stayActiveDurationMs=10000)
         stay_active_duration_ms = 10000
         logging.info(f"Sending KeepActiveCommand({stay_active_duration_ms})")
-        await self._send_keep_active_command(stay_active_duration_ms, dynamic_endpoint_id)
+        await self._send_keep_active_command(stay_active_duration_ms, timeout_ms, dynamic_endpoint_id)
 
         self.pause_th_icd_server(check_state=True)
         # If we are seeing assertion below fail test assumption is likely incorrect.
