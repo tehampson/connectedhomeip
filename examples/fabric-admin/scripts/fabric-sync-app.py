@@ -177,27 +177,31 @@ async def main(args):
     # Wait a bit for apps to start.
     await asyncio.sleep(1)
 
-    try:
-        # Check whether the bridge is already commissioned. If it is,
-        # we will get the response, otherwise we will hit timeout.
-        cmd = "descriptor read device-type-list 1 1 --timeout 1"
-        admin.stdin.write((cmd + "\n").encode())
-        await asyncio.wait_for(BRIDGE_COMMISSIONED.wait(), timeout=1.5)
-    except asyncio.TimeoutError:
-        # Commission the bridge to the admin.
-        cmd = "fabricsync add-local-bridge 1"
-        if args.passcode is not None:
-            cmd += f" --setup-pin-code {args.passcode}"
-        if args.secured_device_port is not None:
-            cmd += f" --local-port {args.secured_device_port}"
-        admin.stdin.write((cmd + "\n").encode())
-        # Wait for the bridge to be commissioned.
-        await asyncio.sleep(5)
+    #try:
+    #    # Check whether the bridge is already commissioned. If it is,
+    #    # we will get the response, otherwise we will hit timeout.
+    #    cmd = "descriptor read device-type-list 1 1 --timeout 1"
+    #    admin.stdin.write((cmd + "\n").encode())
+    #    await admin.stdin.drain()
+    #    await asyncio.wait_for(BRIDGE_COMMISSIONED.wait(), timeout=1.5)
+    #except asyncio.TimeoutError:
+
+    # Commission the bridge to the admin.
+    cmd = "fabricsync add-local-bridge 1"
+    if args.passcode is not None:
+        cmd += f" --setup-pin-code {args.passcode}"
+    if args.secured_device_port is not None:
+        cmd += f" --local-port {args.secured_device_port}"
+    admin.stdin.write((cmd + "\n").encode())
+    await admin.stdin.drain()
+    # Wait for the bridge to be commissioned.
+    await asyncio.sleep(5)
 
     # Open commissioning window with original setup code for the bridge,
     # so it can be added by the TH fabric.
     cmd = "pairing open-commissioning-window 1 0 0 600 1000 0"
     admin.stdin.write((cmd + "\n").encode())
+    await admin.stdin.drain()
     # Wait some time for the bridge to open the commissioning window.
     await asyncio.sleep(1)
 

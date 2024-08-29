@@ -38,6 +38,7 @@ import os
 import random
 import subprocess
 import sys
+import time
 import tempfile
 import threading
 
@@ -134,6 +135,13 @@ class FabricSyncApp:
 
         # Wait for the bridge to connect to the admin.
         self.wait_for_text()
+
+        #
+        self.admin.p.stdin.flush()
+        time.sleep(5)
+        self.admin.p.stdin.flush()
+        time.sleep(2)
+        self.admin.p.stdin.flush()
 
     def CommissionOnNetwork(self, nodeId, setupPinCode=None, filterType=None, filter=None):
         self.wait_for_text_text = f"Commissioning complete for node ID 0x{nodeId:016x}: success"
